@@ -1,4 +1,4 @@
-// app.js - VERSÃO MODULAR COM CORREÇÃO MENSALISTA 🚀
+// app.js - VERSÃO MODULAR 🚀
 
 import { regras } from './regras.js';
 import { calcularSalarioCompleto } from './calculadora-regras.js';
@@ -85,7 +85,7 @@ function renderizarResultados(resultado) {
     mostrarResultados();
 }
 
-// --- LÓGICA DE FÉRIAS CORRIGIDA (MENSALISTA 30 DIAS) ---
+// --- LÓGICA DE FÉRIAS (MENSALISTA 30 DIAS) ---
 function alternarModoDias() {
     const opcaoSelecionada = document.querySelector('input[name="tipoDias"]:checked');
     if(!opcaoSelecionada) return;
@@ -166,8 +166,6 @@ function calcularDiasProporcionaisFerias() {
             diasFeriasNoMes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24)) + 1;
         }
 
-        // --- CORREÇÃO: REGRA DO MENSALISTA ---
-        // Sempre 30 menos os dias de férias gozados no mês.
         diasTrabalhados = 30 - diasFeriasNoMes;
 
         let textoExplicativo = "";
@@ -186,7 +184,6 @@ function calcularDiasProporcionaisFerias() {
         `;
     } 
     else if (modo === 'retorno_ferias') {
-        // Ex: Retorno dia 10. Perdi 9 dias de férias. Saldo = 30 - 9 = 21.
         const diasPerdidosFerias = diaValidado - 1;
         diasTrabalhados = 30 - diasPerdidosFerias;
 
@@ -226,7 +223,6 @@ function handleCalcular() {
         descontarVT: document.getElementById('descontar_vt').value === 'sim'
     };
     
-    // Importante: Passando as regras importadas
     const resultado = calcularSalarioCompleto(inputs, regras);
     renderizarResultados(resultado);
 }
@@ -348,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
     alternarModoDias();
     preencherDiasMes();
     
-    // --- ATUALIZAÇÃO AUTOMÁTICA ---
     if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
         let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
