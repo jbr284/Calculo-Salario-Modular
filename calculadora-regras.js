@@ -13,24 +13,23 @@ function calcularINSS(baseDeCalculo, regras) {
 }
 
 // --- LÓGICA DE IRRF 2026 (LEI 15.270) ---
-// Recebe agora o 'totalBruto' explicitamente para usar na fórmula do Redutor
+// Recebe 'totalBruto' explicitamente para usar na isenção e no redutor
 function calcularIRRF(baseBruta, inssCalculado, dependentes, totalBruto, regras) {
   
-  // 1. CHECAGEM DE ISENÇÃO PELO BRUTO (Até R$ 5.000,00)
+  // 1. ISENÇÃO DIRETA (Renda Bruta até 5k)
+  // Se ganha 5.000,00 cravado, nem faz conta. É zero.
   if (regras.novaRegra2026 && regras.novaRegra2026.ativo) {
-     // Se a Renda Tributável (Bruto) for até 5000, isenta direto.
      if (totalBruto <= regras.novaRegra2026.limiteIsencaoBruto) {
         return 0;
      }
   }
 
   // 2. CÁLCULO DO IMPOSTO "NORMAL" (Tabela Progressiva)
-  // Precisamos achar o imposto devido antes do redutor. 
-  // O sistema continua escolhendo a melhor base (Legal vs Simplificada).
-  
+  // O sistema continua escolhendo a melhor base (Legal vs Simplificada)
   const baseLegal = baseBruta - inssCalculado - (dependentes * regras.deducaoPorDependenteIRRF);
   const baseSimplificada = baseBruta - regras.descontoSimplificado;
 
+  // Escolhe a menor base (mais vantajosa)
   let baseFinal = Math.min(baseLegal, baseSimplificada);
   if (baseFinal < 0) baseFinal = 0;
 
@@ -42,16 +41,15 @@ function calcularIRRF(baseBruta, inssCalculado, dependentes, totalBruto, regras)
     }
   }
 
-  // 3. APLICAR O REDUTOR (Se estiver na faixa de transição do BRUTO)
+  // 3. APLICAR O REDUTOR (Se Bruto entre 5k e 7.35k)
   if (regras.novaRegra2026 && regras.novaRegra2026.ativo) {
-    // A regra do redutor se aplica se o BRUTO estiver entre 5.000 e 7.350
     if (totalBruto > regras.novaRegra2026.limiteIsencaoBruto && 
         totalBruto <= regras.novaRegra2026.faixaTransicaoFim) {
         
-        // FÓRMULA CORRETA: Redução = 978,62 - (0,133145 x RendaTributável/Bruto)
+        // FÓRMULA OFICIAL: 978,61 - (0,133145 * Renda Bruta)
         const valorRedutor = regras.novaRegra2026.parcelaFixaRedutor - (regras.novaRegra2026.fatorRedutor * totalBruto);
         
-        // Abate o redutor do imposto apurado na tabela
+        // Abate o redutor do imposto calculado na tabela
         if (valorRedutor > 0) {
             impostoCalculado -= valorRedutor;
         }
@@ -94,8 +92,7 @@ export function calcularSalarioCompleto(inputs, regras) {
   // 1. INSS
   const inss = calcularINSS(totalBruto, regras);
   
-  // 2. IRRF (Passando o totalBruto para a lógica do redutor)
-  // 'totalBruto' aqui atua como a "Renda Tributável" para fins da Lei 15.270
+  // 2. IRRF (Passamos 'totalBruto' para a lógica do redutor)
   const irrf = calcularIRRF(totalBruto, inss, dependentes, totalBruto, regras);
 
   const descontoPlano = regras.planosSESI[plano] || 0;
