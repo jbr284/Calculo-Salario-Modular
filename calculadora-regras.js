@@ -17,7 +17,6 @@ function calcularINSS(baseDeCalculo, regras) {
 function calcularIRRF(baseBruta, inssCalculado, dependentes, totalBruto, regras) {
   
   // 1. ISENÇÃO DIRETA (Renda Bruta até 5k)
-  // Se ganha 5.000,00 cravado, nem faz conta. É zero.
   if (regras.novaRegra2026 && regras.novaRegra2026.ativo) {
      if (totalBruto <= regras.novaRegra2026.limiteIsencaoBruto) {
         return 0;
