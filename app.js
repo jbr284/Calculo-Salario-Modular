@@ -1,5 +1,6 @@
-// app.js - VERSÃO MODULAR 🚀
+// app.js - VERSÃO FINAL MODULAR (Importando a lógica 2026) 🚀
 
+// 1. IMPORTAÇÕES (AQUI É O SEGREDO: Conectamos com os outros arquivos)
 import { regras } from './regras.js';
 import { calcularSalarioCompleto } from './calculadora-regras.js';
 
@@ -62,7 +63,9 @@ function renderizarResultados(resultado) {
     htmlDescontos += row('Vale Alimentação', descontos.descontoVA);
     htmlDescontos += row('Vale Transporte (6%)', descontos.descontoVT);
     htmlDescontos += `<tr><td>INSS</td><td class="valor">${formatarMoeda(descontos.inss)}</td></tr>`;
-    htmlDescontos += `<tr><td>IRRF</td><td class="valor">${formatarMoeda(descontos.irrf)}</td></tr>`;
+    
+    // Destaque para o IRRF
+    htmlDescontos += `<tr><td>IRRF (Lei 15.270)</td><td class="valor">${formatarMoeda(descontos.irrf)}</td></tr>`;
 
     resultContainer.innerHTML = `
         <h2>Resultado do Cálculo</h2>
@@ -85,7 +88,7 @@ function renderizarResultados(resultado) {
     mostrarResultados();
 }
 
-// --- LÓGICA DE FÉRIAS (MENSALISTA 30 DIAS) ---
+// --- LÓGICA DE FÉRIAS (MANTIDA) ---
 function alternarModoDias() {
     const opcaoSelecionada = document.querySelector('input[name="tipoDias"]:checked');
     if(!opcaoSelecionada) return;
@@ -201,7 +204,7 @@ function calcularDiasProporcionaisFerias() {
     diasTrabInput.value = diasTrabalhados;
 }
 
-// --- FUNÇÃO DE CÁLCULO ---
+// --- FUNÇÃO DE CÁLCULO (Atualizada com imports) ---
 function handleCalcular() {
     const inputs = {
         salario: parseFloat(document.getElementById('salario').value) || 0,
@@ -223,6 +226,7 @@ function handleCalcular() {
         descontarVT: document.getElementById('descontar_vt').value === 'sim'
     };
     
+    // Agora chama a função do arquivo externo!
     const resultado = calcularSalarioCompleto(inputs, regras);
     renderizarResultados(resultado);
 }
