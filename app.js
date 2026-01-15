@@ -1,7 +1,8 @@
-// app.js - VERSÃO DEFINITIVA 2026 (Arquivo Único)
+// app.js - VERSÃO FINAL UNIFICADA (Resolve o erro de import)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. CONFIGURAÇÕES E REGRAS 2026 ---
+    
+    // --- 1. TODAS AS REGRAS E DADOS (Lei 15.270 - 2026) ---
     const regras = {
         anoVigencia: 2026,
         salarioMinimo: 1518.00,
@@ -16,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         descontoSimplificado: 564.80, 
         deducaoPorDependenteIRRF: 189.59,
       
-        // Nova Regra de Isenção e Redutor (Lei 15.270)
+        // Regra de Ouro: Isenção e Redutor (Lei 15.270)
         novaRegra2026: {
           ativo: true,
           limiteIsencaoBruto: 5000.00,
@@ -53,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calcularINSS(baseDeCalculo) {
         if (baseDeCalculo > regras.tetoINSS) baseDeCalculo = regras.tetoINSS;
-        
         for (const faixa of regras.tabelaINSS) {
             if (baseDeCalculo <= faixa.ate) {
                 return (baseDeCalculo * faixa.aliquota) - faixa.deduzir;
@@ -65,8 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calcularIRRF(baseBruta, inssCalculado, dependentes, totalBruto) {
         // A. Isenção Direta pelo Bruto (Lei 15.270)
+        // Se ganhar até 5000 bruto, o imposto é ZERO imediatamente.
         if (regras.novaRegra2026.ativo && totalBruto <= regras.novaRegra2026.limiteIsencaoBruto) {
-            return 0; // Ganhou até 5k? Zero imposto.
+            return 0; 
         }
 
         // B. Cálculo do Imposto Normal (Tabela Progressiva)
@@ -120,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const dsrHE = (diasUteis > 0) ? (totalHE / diasUteis) * domFeriados : 0;
         const dsrNoturno = (diasUteis > 0) ? (valorNoturno / diasUteis) * domFeriados : 0;
         
-        // Total Bruto (Renda Tributável)
         const totalBruto = vencBase + totalHE + valorNoturno + dsrHE + dsrNoturno;
 
         // Descontos
@@ -131,10 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const descontoVA = regras.descontoFixoVA;
         const descontoVT = descontarVT ? (salario * regras.percentualVT) : 0;
         
-        // 1. INSS
+        // Cálculos Tributários
         const inss = calcularINSS(totalBruto);
-        
-        // 2. IRRF (Passamos o TotalBruto para validar a isenção de 5k)
+        // IMPORTANTE: Passamos o TotalBruto para validar a isenção de 5k
         const irrf = calcularIRRF(totalBruto, inss, dependentes, totalBruto);
 
         const descontoPlano = regras.planosSESI[plano] || 0;
