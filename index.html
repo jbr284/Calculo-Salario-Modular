@@ -42,38 +42,20 @@
                         </div>
                         
                         <div id="box-calculo-ferias" class="feriado-container hidden" style="margin-top: 10px; background-color: #e3f2fd; border: 1px solid #90caf9; padding: 10px; border-radius: 8px;">
-                            
-                            <label style="font-size: 0.95em; color: #0d47a1; margin-bottom: 8px; display:block; font-weight:bold;">
-                                Dados para o Cálculo:
-                            </label>
-
+                            <label style="font-size: 0.95em; color: #0d47a1; margin-bottom: 8px; display:block; font-weight:bold;">Dados para o Cálculo:</label>
                             <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; align-items: end;">
-                                
                                 <div id="col-data">
-                                    <label id="lbl-data-ferias" for="inicioFerias" style="font-size: 0.85em; display: block; margin-bottom: 4px; color: #333; white-space: nowrap;">
-                                        Dia do Mês
-                                    </label>
+                                    <label id="lbl-data-ferias" for="inicioFerias" style="font-size: 0.85em; display: block; margin-bottom: 4px; color: #333; white-space: nowrap;">Dia do Mês</label>
                                     <select id="inicioFerias" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #bbb; border-radius: 4px;">
                                         <option value="">Selecione</option>
-                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                                        <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
-                                        <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
-                                        <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
-                                        <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
-                                        <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
-                                        <option value="31">31</option>
+                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
                                     </select>
                                 </div>
-
                                 <div id="col-qtd">
-                                    <label for="qtdDiasFerias" style="font-size: 0.85em; display: block; margin-bottom: 4px; color: #333; white-space: nowrap;">
-                                        Qtd. Dias
-                                    </label>
+                                    <label for="qtdDiasFerias" style="font-size: 0.85em; display: block; margin-bottom: 4px; color: #333; white-space: nowrap;">Qtd. Dias</label>
                                     <input type="number" id="qtdDiasFerias" placeholder="Ex: 30" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #bbb; border-radius: 4px;">
                                 </div>
-
                             </div>
-
                             <p id="feedback-ferias" style="font-size: 0.85em; color: #555; margin-top: 10px; font-style: italic; line-height: 1.4; border-top: 1px solid #bbdefb; padding-top: 8px; min-height: 20px;"></p>
                         </div>
                     
@@ -88,11 +70,9 @@
                     <div class="input-group">
                         <label class="form-section-title" style="margin: 0; font-size: 1.1em;">Feriados Regionais</label>
                         <div class="feriado-container">
-                            
                             <p style="font-size: 0.85em; color: #555; margin-bottom: 8px; margin-top: 0; line-height: 1.3;">
                                 <strong style="color: #0d47a1;">Dica:</strong> Adicione aqui feriados municipais e estaduais para o cálculo correto do DSR.
                             </p>
-
                             <div class="feriado-actions">
                                 <select id="diaFeriado">
                                     <option value="">Dia</option>
@@ -180,18 +160,17 @@
     </div>
 
     <div id="result-view" class="hidden">
-      <div id="resultado-container">
-          </div>
-      <button type="button" id="btn-voltar" class="btn-secondary">Calcular Novamente</button>
+      <div id="resultado-container"></div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" id="btn-voltar" class="btn-secondary" style="flex:1;">Calcular Novamente</button>
+          <button type="button" id="btn-pdf" class="btn-primary" style="flex:1; background-color: #d32f2f;">Baixar PDF</button>
+      </div>
     </div>
 
   </div>
 
-<script type="module" src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
-
-
-
-
-
