@@ -1,4 +1,4 @@
-// app.js - VERSÃO COM PDF E AJUSTES DE TEXTO 📄
+// app.js - VERSÃO FINAL 2026 (PDF PERFEITO SEM CORTES) 📄✨
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -209,18 +209,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const row = (l, v) => v > 0.01 ? `<tr><td>${l}</td><td class="valor">${formatarMoeda(v)}</td></tr>` : '';
 
-        // Montagem do HTML sem o <h2> do topo conforme pedido
+        // Tabela limpa para PDF perfeito
         resultContainer.innerHTML = `
-            <table class="result-table">
+            <table class="result-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                 <thead>
-                    <tr>
-                        <th>DESCRIÇÃO</th>
-                        <th style="text-align: right;">VALOR</th>
+                    <tr style="background-color: #0d47a1; color: white;">
+                        <th style="padding: 10px; text-align: left;">DESCRIÇÃO</th>
+                        <th style="padding: 10px; text-align: right;">VALOR</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="section-header"><td colspan="2">Proventos</td></tr>
-                    ${row('Salário Base', p.vencBase)} ${row('Hora Extra 50%', p.valorHE50)}
+                    <tr class="section-header" style="background-color: #e3f2fd; font-weight: bold;"><td colspan="2" style="padding: 8px;">Proventos</td></tr>
+                    ${row('Salário Base', p.vencBase)}
+                    ${row('Hora Extra 50%', p.valorHE50)}
                     ${row('Hora Extra 60%', p.valorHE60)}
                     ${row('Hora Extra 80%', p.valorHE80)}
                     ${row('Hora Extra 100%', p.valorHE100)}
@@ -228,29 +229,55 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${row('Adicional Noturno', p.valorNoturno)}
                     ${row('DSR sobre Horas Extras', p.dsrHE)}
                     ${row('DSR sobre Adic. Noturno', p.dsrNoturno)}
-                    <tr class="summary-row"><td>Total Bruto</td><td class="valor">${formatarMoeda(p.totalBruto)}</td></tr>
+                    <tr class="summary-row" style="font-weight: bold; background-color: #f5f5f5;"><td style="padding: 8px;">Total Bruto</td><td class="valor" style="text-align: right; padding: 8px;">${formatarMoeda(p.totalBruto)}</td></tr>
                     
-                    <tr class="section-header"><td colspan="2">Descontos</td></tr>
+                    <tr class="section-header" style="background-color: #e3f2fd; font-weight: bold;"><td colspan="2" style="padding: 8px;">Descontos</td></tr>
                     ${row('Faltas (dias)', d.descontoFaltas)}
                     ${row('Atrasos (horas)', d.descontoAtrasos)}
                     ${row('Adiantamento Salarial', d.adiantamento)}
                     ${row('Convênio SESI', d.descontoPlano)}
-                    ${row('Mensalidade Sindicato', d.descontoSindicato)} ${row('Vale Alimentação', d.descontoVA)}
+                    ${row('Mensalidade Sindicato', d.descontoSindicato)}
+                    ${row('Vale Alimentação', d.descontoVA)}
                     ${row('Vale Transporte', d.descontoVT)}
                     ${row('Empréstimo', d.emprestimo)}
                     ${row('INSS', d.inss)}
                     
-                    <tr><td>IRRF</td><td class="valor">${formatarMoeda(d.irrf)}</td></tr> <tr class="summary-row"><td>Total Descontos</td><td class="valor">${formatarMoeda(d.totalDescontos)}</td></tr>
+                    <tr><td style="padding: 5px;">IRRF</td><td class="valor" style="text-align: right; padding: 5px;">${formatarMoeda(d.irrf)}</td></tr>
                     
-                    <tr class="section-header"><td colspan="2">Resumo Final</td></tr>
-                    <tr class="final-result-main"><td>Salário Líquido (Pagamento Final)</td><td class="valor">${formatarMoeda(resultado.liquido)}</td></tr>
-                    <tr class="final-result-secondary"><td>Salário Líquido Total</td><td class="valor">${formatarMoeda(liquidoMensal)}</td></tr> <tr class="final-result-secondary fgts-row"><td>FGTS</td><td class="valor">${formatarMoeda(fgts)}</td></tr> </tbody>
+                    <tr class="summary-row" style="font-weight: bold; background-color: #f5f5f5;"><td style="padding: 8px;">Total Descontos</td><td class="valor" style="text-align: right; padding: 8px;">${formatarMoeda(d.totalDescontos)}</td></tr>
+                    
+                    <tr class="section-header" style="background-color: #0d47a1; color: white; font-weight: bold;"><td colspan="2" style="padding: 10px; text-align: center;">Resumo Final</td></tr>
+                    <tr class="final-result-main" style="background-color: #e3f2fd; font-size: 1.1em; font-weight: bold;"><td style="padding: 10px;">Salário Líquido (Pagamento Final)</td><td class="valor" style="text-align: right; padding: 10px;">${formatarMoeda(resultado.liquido)}</td></tr>
+                    <tr class="final-result-secondary"><td style="padding: 8px;">Salário Líquido Total</td><td class="valor" style="text-align: right; padding: 8px;">${formatarMoeda(liquidoMensal)}</td></tr>
+                    <tr class="final-result-secondary fgts-row" style="font-style: italic; color: #555;"><td style="padding: 8px;">FGTS</td><td class="valor" style="text-align: right; padding: 8px;">${formatarMoeda(fgts)}</td></tr>
+                </tbody>
             </table>
         `;
         formView.classList.add('hidden');
         resultView.classList.remove('hidden');
         window.scrollTo(0,0);
     }
+
+    // --- FUNÇÃO EXPORTAR PDF (CORRIGIDA) ---
+    document.getElementById('btn-pdf').addEventListener('click', () => {
+        const elemento = document.getElementById('resultado-container');
+        
+        // Configurações cruciais para evitar cortes e espaços em branco
+        const opt = {
+            margin:       10,
+            filename:     'calculo-salario-2026.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                scrollY: 0, // O SEGREDO: Isso remove o espaço em branco do topo!
+                logging: false
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Gera o PDF
+        html2pdf().set(opt).from(elemento).save();
+    });
 
     // Leitura Segura de Inputs
     function getVal(id) {
@@ -287,20 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-voltar').addEventListener('click', () => {
         resultView.classList.add('hidden');
         formView.classList.remove('hidden');
-    });
-
-    // --- FUNÇÃO EXPORTAR PDF ---
-    document.getElementById('btn-pdf').addEventListener('click', () => {
-        const elemento = document.getElementById('resultado-container');
-        const opt = {
-            margin:       10,
-            filename:     'calculo-salario-dtc.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        // Gera o PDF
-        html2pdf().set(opt).from(elemento).save();
     });
 
     // Salvar/Restaurar
