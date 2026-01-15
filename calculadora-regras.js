@@ -1,4 +1,5 @@
-// Funções auxiliares (internas)
+// calculadora-regras.js
+
 function calcularINSS(baseDeCalculo, regras) {
   if (baseDeCalculo > regras.tetoINSS) {
     baseDeCalculo = regras.tetoINSS;
@@ -12,53 +13,18 @@ function calcularINSS(baseDeCalculo, regras) {
   return (baseDeCalculo * ultimaFaixa.aliquota) - ultimaFaixa.deduzir;
 }
 
-// --- LÓGICA DE IRRF 2026 (LEI 15.270) ---
-// Recebe 'totalBruto' explicitamente para usar na isenção e no redutor
-function calcularIRRF(baseBruta, inssCalculado, dependentes, totalBruto, regras) {
-  
-  // 1. ISENÇÃO DIRETA (Renda Bruta até 5k)
-  if (regras.novaRegra2026 && regras.novaRegra2026.ativo) {
-     if (totalBruto <= regras.novaRegra2026.limiteIsencaoBruto) {
-        return 0;
-     }
-  }
+function calcularIRRF(baseDeCalculo, dependentes, regras) {
+  const deducaoDependentes = dependentes * regras.deducaoPorDependenteIRRF;
+  const baseFinal = baseDeCalculo - deducaoDependentes;
 
-  // 2. CÁLCULO DO IMPOSTO "NORMAL" (Tabela Progressiva)
-  // O sistema continua escolhendo a melhor base (Legal vs Simplificada)
-  const baseLegal = baseBruta - inssCalculado - (dependentes * regras.deducaoPorDependenteIRRF);
-  const baseSimplificada = baseBruta - regras.descontoSimplificado;
-
-  // Escolhe a menor base (mais vantajosa)
-  let baseFinal = Math.min(baseLegal, baseSimplificada);
-  if (baseFinal < 0) baseFinal = 0;
-
-  let impostoCalculado = 0;
   for (const faixa of regras.tabelaIRRF) {
     if (faixa.ate === "acima" || baseFinal <= faixa.ate) {
-      impostoCalculado = (baseFinal * faixa.aliquota) - faixa.deduzir;
-      break;
+      return (baseFinal * faixa.aliquota) - faixa.deduzir;
     }
   }
-
-  // 3. APLICAR O REDUTOR (Se Bruto entre 5k e 7.35k)
-  if (regras.novaRegra2026 && regras.novaRegra2026.ativo) {
-    if (totalBruto > regras.novaRegra2026.limiteIsencaoBruto && 
-        totalBruto <= regras.novaRegra2026.faixaTransicaoFim) {
-        
-        // FÓRMULA OFICIAL: 978,61 - (0,133145 * Renda Bruta)
-        const valorRedutor = regras.novaRegra2026.parcelaFixaRedutor - (regras.novaRegra2026.fatorRedutor * totalBruto);
-        
-        // Abate o redutor do imposto calculado na tabela
-        if (valorRedutor > 0) {
-            impostoCalculado -= valorRedutor;
-        }
-    }
-  }
-
-  return Math.max(0, impostoCalculado);
+  return 0;
 }
 
-// Função Principal Exportada
 export function calcularSalarioCompleto(inputs, regras) {
   const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
 
@@ -80,29 +46,34 @@ export function calcularSalarioCompleto(inputs, regras) {
 
   const totalBruto = vencBase + totalHE + valorNoturno + dsrHE + dsrNoturno;
 
-  // --- Descontos ---
+  // --- FGTS ---
   const fgts = totalBruto * 0.08;
+
+  // --- Descontos ---
   const descontoFaltas = faltas * valorDia;
   const descontoAtrasos = atrasos * valorHora;
   const adiantamento = (salario / 30) * diasTrab * regras.percentualAdiantamento;
-  const descontoVA = regras.descontoFixoVA;
-  const descontoVT = descontarVT ? (salario * regras.percentualVT) : 0;
   
-  // 1. INSS
   const inss = calcularINSS(totalBruto, regras);
-  
-  // 2. IRRF (Passamos 'totalBruto' para a lógica do redutor)
-  const irrf = calcularIRRF(totalBruto, inss, dependentes, totalBruto, regras);
+  const baseIRRF = totalBruto - inss;
+  const irrf = calcularIRRF(baseIRRF, dependentes, regras);
 
   const descontoPlano = regras.planosSESI[plano] || 0;
   const descontoSindicato = sindicato === 'sim' ? regras.valorSindicato : 0;
+  const descontoVA = regras.descontoFixoVA;
+  const descontoVT = descontarVT ? (salario * regras.percentualVT) : 0;
 
   const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
+  
   const liquido = totalBruto - totalDescontos;
 
   return {
-    proventos: { vencBase, valorHE50, valorHE60, valorHE80, valorHE100, valorHE150, valorNoturno, dsrHE, dsrNoturno, totalBruto },
-    descontos: { descontoFaltas, descontoAtrasos, descontoPlano, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos },
+    proventos: {
+      vencBase, valorHE50, valorHE60, valorHE80, valorHE100, valorHE150, valorNoturno, dsrHE, dsrNoturno, totalBruto
+    },
+    descontos: {
+      descontoFaltas, descontoAtrasos, descontoPlano, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos
+    },
     fgts,
     liquido
   };

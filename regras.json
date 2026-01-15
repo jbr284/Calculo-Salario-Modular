@@ -1,0 +1,31 @@
+{
+  "anoVigencia": 2025,
+  "salarioMinimo": 1518.00,
+  "tetoINSS": 8157.41,
+  "percentualAdiantamento": 0.4,
+  "percentualAdicionalNoturno": 0.35,
+  "descontoFixoVA": 23.97,
+  "percentualVT": 0.06,
+  "valorSindicato": 47.5,
+  "deducaoPorDependenteIRRF": 189.59,
+  "tabelaINSS": [
+    { "ate": 1518.00, "aliquota": 0.075, "deduzir": 0 },
+    { "ate": 2793.88, "aliquota": 0.09, "deduzir": 22.77 },
+    { "ate": 4190.83, "aliquota": 0.12, "deduzir": 106.59 },
+    { "ate": 8157.41, "aliquota": 0.14, "deduzir": 190.41 }
+  ],
+  "tabelaIRRF": [
+    { "ate": 2428.80, "aliquota": 0, "deduzir": 0 },
+    { "ate": 2826.65, "aliquota": 0.075, "deduzir": 182.16 },
+    { "ate": 3751.05, "aliquota": 0.15, "deduzir": 394.16 },
+    { "ate": 4664.68, "aliquota": 0.225, "deduzir": 675.49 },
+    { "ate": "acima", "aliquota": 0.275, "deduzir": 908.73 }
+  ],
+  "planosSESI": {
+    "nenhum": 0,
+    "basico_individual": 29,
+    "basico_familiar": 58,
+    "plus_individual": 115,
+    "plus_familiar": 180
+  }
+}
