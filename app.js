@@ -1,4 +1,4 @@
-// app.js - VERSÃO FINAL 2026 (COM FGTS, TOTAL MENSAL E DSR CORRIGIDO)
+// app.js - VERSÃO COM PDF E AJUSTES DE TEXTO 📄
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -12,8 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
         descontoFixoVA: 23.97,
         percentualVT: 0.06,
         valorSindicato: 47.5,
-        
-        // Parâmetros IRRF 2026
         descontoSimplificado: 564.80, 
         deducaoPorDependenteIRRF: 189.59,
         novaRegra2026: {
@@ -39,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         planosSESI: { nenhum: 0, basico_individual: 29, basico_familiar: 58, plus_individual: 115, plus_familiar: 180 }
     };
 
-    // --- 2. LÓGICA MATEMÁTICA ---
+    // --- 2. CÁLCULOS ---
     function calcularINSS(base) {
         if (base > regras.tetoINSS) base = regras.tetoINSS;
         for (const f of regras.tabelaINSS) {
@@ -50,12 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calcularIRRF(baseBruta, inss, deps, totalBruto) {
-        // Isenção Bruto 5k
-        if (regras.novaRegra2026.ativo && totalBruto <= regras.novaRegra2026.limiteIsencaoBruto) {
-            return 0; 
-        }
+        if (regras.novaRegra2026.ativo && totalBruto <= regras.novaRegra2026.limiteIsencaoBruto) return 0;
 
-        // Imposto Normal
         const baseLegal = baseBruta - inss - (deps * regras.deducaoPorDependenteIRRF);
         const baseSimples = baseBruta - regras.descontoSimplificado;
         let baseFinal = Math.min(baseLegal, baseSimples);
@@ -69,11 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Redutor
-        if (regras.novaRegra2026.ativo && 
-            totalBruto > regras.novaRegra2026.limiteIsencaoBruto && 
-            totalBruto <= regras.novaRegra2026.faixaTransicaoFim) {
-            
+        if (regras.novaRegra2026.ativo && totalBruto > 5000 && totalBruto <= 7350) {
             const redutor = regras.novaRegra2026.parcelaFixaRedutor - (regras.novaRegra2026.fatorRedutor * totalBruto);
             if (redutor > 0) impostoCalculado -= redutor;
         }
@@ -83,10 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calcularSalarioCompleto(inputs) {
         const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
-        
-        // Garante dias trabalhados
         const diasEfetivos = (diasTrab === "" || diasTrab === 0) ? 30 : diasTrab;
-
         const valorDia = salario / 30;
         const valorHora = salario / 220;
 
@@ -100,11 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const valorNoturno = noturno * valorHora * regras.percentualAdicionalNoturno;
         
         const totalHE = valorHE50 + valorHE60 + valorHE80 + valorHE100 + valorHE150;
-        
-        // DSR
         const dsrHE = (diasUteis > 0) ? (totalHE / diasUteis) * domFeriados : 0;
         const dsrNoturno = (diasUteis > 0) ? (valorNoturno / diasUteis) * domFeriados : 0;
-
         const totalBruto = vencBase + totalHE + valorNoturno + dsrHE + dsrNoturno;
 
         // Descontos
@@ -137,39 +121,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const [ano, mes] = mesAno.split('-').map(Number);
         const diasNoMes = new Date(ano, mes, 0).getDate();
-        
         let diasUteis = 0;
         let domingos = 0;
-        
         for (let d = 1; d <= diasNoMes; d++) {
             const data = new Date(ano, mes - 1, d);
-            const diaSemana = data.getDay(); // 0 = Domingo, 6 = Sábado
+            const diaSemana = data.getDay(); 
             if (diaSemana >= 1 && diaSemana <= 6) diasUteis++;
             if (diaSemana === 0) domingos++;
         }
         
         const feriadosFixos = ["01/01", "21/04", "01/05", "07/09", "12/10", "02/11", "15/11", "25/12"];
         let feriadosNacionaisNoMes = 0;
-        
         feriadosFixos.forEach(fix => {
             const [dia, mesFix] = fix.split('/');
             if (parseInt(mesFix) === mes) {
                 const dataFeriado = new Date(ano, mes - 1, parseInt(dia));
-                if (dataFeriado.getDay() !== 0) {
-                    feriadosNacionaisNoMes++;
-                }
+                if (dataFeriado.getDay() !== 0) feriadosNacionaisNoMes++;
             }
         });
         
         const feriadosExtrasInput = document.getElementById('feriadosExtras').value;
         const qtdFeriadosExtras = feriadosExtrasInput ? feriadosExtrasInput.split(',').length : 0;
-        
         const totalFeriados = qtdFeriadosExtras + feriadosNacionaisNoMes;
-        const diasUteisFinais = diasUteis - totalFeriados;
-        const domingosFeriadosFinais = domingos + totalFeriados;
         
-        document.getElementById('diasUteis').value = diasUteisFinais;
-        document.getElementById('domFeriados').value = domingosFeriadosFinais;
+        document.getElementById('diasUteis').value = diasUteis - totalFeriados;
+        document.getElementById('domFeriados').value = domingos + totalFeriados;
         
         if(document.querySelector('input[name="tipoDias"]:checked')?.value !== 'completo') {
             calcularDiasProporcionaisFerias();
@@ -180,23 +156,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const dia = document.getElementById('diaFeriado').value;
         const mesAno = document.getElementById('mesReferencia').value;
         if (!dia || !mesAno) return;
-        
         const [ano, mes] = mesAno.split('-');
-        const dataFormatada = `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${ano}`;
-        
+        const data = `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${ano}`;
         const campo = document.getElementById('feriadosExtras');
         let feriados = campo.value ? campo.value.split(',') : [];
-        
-        if (!feriados.includes(dataFormatada)) {
-            feriados.push(dataFormatada);
+        if (!feriados.includes(data)) {
+            feriados.push(data);
             campo.value = feriados.join(',');
-            
             const div = document.createElement('div');
-            div.textContent = dataFormatada;
+            div.textContent = data;
             div.className = 'feriado-box';
             div.title = 'Clique para remover';
             div.onclick = () => {
-                feriados = feriados.filter(f => f !== dataFormatada);
+                feriados = feriados.filter(f => f !== data);
                 campo.value = feriados.join(',');
                 div.remove();
                 preencherDiasMes();
@@ -233,20 +205,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const p = resultado.proventos;
         const d = resultado.descontos;
         const fgts = resultado.fgts;
-        
-        // Cálculo do Salário Total Mensal (Liquido + Adiantamento)
         const liquidoMensal = resultado.liquido + d.adiantamento;
 
         const row = (l, v) => v > 0.01 ? `<tr><td>${l}</td><td class="valor">${formatarMoeda(v)}</td></tr>` : '';
 
+        // Montagem do HTML sem o <h2> do topo conforme pedido
         resultContainer.innerHTML = `
-            <h2>Resultado do Cálculo (2026)</h2>
             <table class="result-table">
-                <thead><tr><th>Descrição</th><th>Valor</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>DESCRIÇÃO</th>
+                        <th style="text-align: right;">VALOR</th>
+                    </tr>
+                </thead>
                 <tbody>
                     <tr class="section-header"><td colspan="2">Proventos</td></tr>
-                    ${row('Salário Base Proporcional', p.vencBase)}
-                    ${row('Hora Extra 50%', p.valorHE50)}
+                    ${row('Salário Base', p.vencBase)} ${row('Hora Extra 50%', p.valorHE50)}
                     ${row('Hora Extra 60%', p.valorHE60)}
                     ${row('Hora Extra 80%', p.valorHE80)}
                     ${row('Hora Extra 100%', p.valorHE100)}
@@ -261,21 +235,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${row('Atrasos (horas)', d.descontoAtrasos)}
                     ${row('Adiantamento Salarial', d.adiantamento)}
                     ${row('Convênio SESI', d.descontoPlano)}
-                    ${row('Sindicato', d.descontoSindicato)}
-                    ${row('Vale Alimentação', d.descontoVA)}
+                    ${row('Mensalidade Sindicato', d.descontoSindicato)} ${row('Vale Alimentação', d.descontoVA)}
                     ${row('Vale Transporte', d.descontoVT)}
                     ${row('Empréstimo', d.emprestimo)}
                     ${row('INSS', d.inss)}
                     
-                    <tr><td>IRRF (Lei 15.270)</td><td class="valor">${formatarMoeda(d.irrf)}</td></tr>
-                    
-                    <tr class="summary-row"><td>Total Descontos</td><td class="valor">${formatarMoeda(d.totalDescontos)}</td></tr>
+                    <tr><td>IRRF</td><td class="valor">${formatarMoeda(d.irrf)}</td></tr> <tr class="summary-row"><td>Total Descontos</td><td class="valor">${formatarMoeda(d.totalDescontos)}</td></tr>
                     
                     <tr class="section-header"><td colspan="2">Resumo Final</td></tr>
                     <tr class="final-result-main"><td>Salário Líquido (Pagamento Final)</td><td class="valor">${formatarMoeda(resultado.liquido)}</td></tr>
-                    <tr class="final-result-secondary"><td>Salário Líquido Total (Mês)</td><td class="valor">${formatarMoeda(liquidoMensal)}</td></tr>
-                    <tr class="final-result-secondary fgts-row"><td>Depósito FGTS do Mês</td><td class="valor">${formatarMoeda(fgts)}</td></tr>
-                </tbody>
+                    <tr class="final-result-secondary"><td>Salário Líquido Total</td><td class="valor">${formatarMoeda(liquidoMensal)}</td></tr> <tr class="final-result-secondary fgts-row"><td>FGTS</td><td class="valor">${formatarMoeda(fgts)}</td></tr> </tbody>
             </table>
         `;
         formView.classList.add('hidden');
@@ -318,6 +287,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-voltar').addEventListener('click', () => {
         resultView.classList.add('hidden');
         formView.classList.remove('hidden');
+    });
+
+    // --- FUNÇÃO EXPORTAR PDF ---
+    document.getElementById('btn-pdf').addEventListener('click', () => {
+        const elemento = document.getElementById('resultado-container');
+        const opt = {
+            margin:       10,
+            filename:     'calculo-salario-dtc.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        // Gera o PDF
+        html2pdf().set(opt).from(elemento).save();
     });
 
     // Salvar/Restaurar
@@ -383,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
         diasTrabInput.value = Math.max(0, Math.min(30, diasPagar));
     }
 
-    // Listeners
     document.getElementById('btn-add-feriado').addEventListener('click', adicionarFeriado);
     document.getElementById('btn-limpar-feriados').addEventListener('click', limparFeriados);
     mesReferenciaInput.addEventListener('change', preencherDiasMes);
@@ -406,7 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Init
     restaurarDadosFixos();
     alternarModoDias();
     preencherDiasMes();
