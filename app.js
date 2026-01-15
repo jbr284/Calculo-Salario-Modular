@@ -1,4 +1,4 @@
-// app.js - VERSÃO RESTAURADA E ATUALIZADA 2026 (COM DSR E CALENDÁRIO)
+// app.js - VERSÃO FINAL 2026 (COM FGTS, TOTAL MENSAL E DSR CORRIGIDO)
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const totalHE = valorHE50 + valorHE60 + valorHE80 + valorHE100 + valorHE150;
         
-        // DSR (Agora funciona porque recuperamos a lógica do calendário)
+        // DSR
         const dsrHE = (diasUteis > 0) ? (totalHE / diasUteis) * domFeriados : 0;
         const dsrNoturno = (diasUteis > 0) ? (valorNoturno / diasUteis) * domFeriados : 0;
 
@@ -130,9 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // --- 3. FUNÇÕES DE CALENDÁRIO (RESTAURADAS!) ---
-    // Essas funções calculam os dias úteis e domingos para o DSR funcionar
-    
+    // --- 3. FUNÇÕES DE CALENDÁRIO ---
     function preencherDiasMes() {
         const mesAno = document.getElementById('mesReferencia').value;
         if (!mesAno) return;
@@ -157,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const [dia, mesFix] = fix.split('/');
             if (parseInt(mesFix) === mes) {
                 const dataFeriado = new Date(ano, mes - 1, parseInt(dia));
-                // Se feriado cair em dia útil (seg-sab), vira repouso
                 if (dataFeriado.getDay() !== 0) {
                     feriadosNacionaisNoMes++;
                 }
@@ -167,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const feriadosExtrasInput = document.getElementById('feriadosExtras').value;
         const qtdFeriadosExtras = feriadosExtrasInput ? feriadosExtrasInput.split(',').length : 0;
         
-        // Ajuste final
         const totalFeriados = qtdFeriadosExtras + feriadosNacionaisNoMes;
         const diasUteisFinais = diasUteis - totalFeriados;
         const domingosFeriadosFinais = domingos + totalFeriados;
@@ -175,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('diasUteis').value = diasUteisFinais;
         document.getElementById('domFeriados').value = domingosFeriadosFinais;
         
-        // Recalcular férias se não for mês completo
         if(document.querySelector('input[name="tipoDias"]:checked')?.value !== 'completo') {
             calcularDiasProporcionaisFerias();
         }
@@ -196,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
             feriados.push(dataFormatada);
             campo.value = feriados.join(',');
             
-            // UI
             const div = document.createElement('div');
             div.textContent = dataFormatada;
             div.className = 'feriado-box';
@@ -238,6 +232,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderizarResultados(resultado) {
         const p = resultado.proventos;
         const d = resultado.descontos;
+        const fgts = resultado.fgts;
+        
+        // Cálculo do Salário Total Mensal (Liquido + Adiantamento)
+        const liquidoMensal = resultado.liquido + d.adiantamento;
+
         const row = (l, v) => v > 0.01 ? `<tr><td>${l}</td><td class="valor">${formatarMoeda(v)}</td></tr>` : '';
 
         resultContainer.innerHTML = `
@@ -273,7 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr class="summary-row"><td>Total Descontos</td><td class="valor">${formatarMoeda(d.totalDescontos)}</td></tr>
                     
                     <tr class="section-header"><td colspan="2">Resumo Final</td></tr>
-                    <tr class="final-result-main"><td>Salário Líquido</td><td class="valor">${formatarMoeda(resultado.liquido)}</td></tr>
+                    <tr class="final-result-main"><td>Salário Líquido (Pagamento Final)</td><td class="valor">${formatarMoeda(resultado.liquido)}</td></tr>
+                    <tr class="final-result-secondary"><td>Salário Líquido Total (Mês)</td><td class="valor">${formatarMoeda(liquidoMensal)}</td></tr>
+                    <tr class="final-result-secondary fgts-row"><td>Depósito FGTS do Mês</td><td class="valor">${formatarMoeda(fgts)}</td></tr>
                 </tbody>
             </table>
         `;
@@ -304,8 +305,8 @@ document.addEventListener('DOMContentLoaded', () => {
             he150: getVal('he150'),
             noturno: getVal('noturno'),
             emprestimo: getVal('emprestimo'),
-            diasUteis: getVal('diasUteis'), // Agora vem preenchido!
-            domFeriados: getVal('domFeriados'), // Agora vem preenchido!
+            diasUteis: getVal('diasUteis'),
+            domFeriados: getVal('domFeriados'),
             plano: document.getElementById('plano').value,
             sindicato: document.getElementById('sindicato').value,
             descontarVT: document.getElementById('descontar_vt').value === 'sim'
@@ -319,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formView.classList.remove('hidden');
     });
 
-    // Funções de Salvar/Restaurar (localStorage)
+    // Salvar/Restaurar
     document.getElementById('btn-salvar').addEventListener('click', () => {
         const dados = {
             salario: document.getElementById('salario').value,
@@ -341,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Lógica de Férias ---
+    // Férias e Auto-preenchimento
     function alternarModoDias() {
         const opcao = document.querySelector('input[name="tipoDias"]:checked');
         if (!opcao) return;
@@ -382,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         diasTrabInput.value = Math.max(0, Math.min(30, diasPagar));
     }
 
-    // Listeners Globais
+    // Listeners
     document.getElementById('btn-add-feriado').addEventListener('click', adicionarFeriado);
     document.getElementById('btn-limpar-feriados').addEventListener('click', limparFeriados);
     mesReferenciaInput.addEventListener('change', preencherDiasMes);
@@ -393,7 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
     inicioFeriasInput.addEventListener('change', calcularDiasProporcionaisFerias);
     qtdDiasFeriasInput.addEventListener('input', calcularDiasProporcionaisFerias);
 
-    // Conversor Horas
     document.querySelectorAll('.hora-conversivel').forEach(campo => {
         campo.addEventListener('blur', function() {
             let valor = this.value.replace('h', ':').replace(',', '.').trim();
@@ -406,12 +406,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Inicialização
+    // Init
     restaurarDadosFixos();
     alternarModoDias();
-    preencherDiasMes(); // Importante: Chama no início para preencher dias úteis
+    preencherDiasMes();
     
-    // Service Worker
     if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
         navigator.serviceWorker.register('sw.js').catch(() => {});
     }
