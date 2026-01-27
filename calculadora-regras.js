@@ -1,6 +1,6 @@
-// calculadora.js
+// calculadora-regras.js
 
-// Função Interna: Calcula o INSS Progressivo
+// Funções internas (privadas ao módulo)
 function calcularINSS(baseDeCalculo, regras) {
     if (baseDeCalculo > regras.tetoINSS) baseDeCalculo = regras.tetoINSS;
     
@@ -14,9 +14,7 @@ function calcularINSS(baseDeCalculo, regras) {
     return (baseDeCalculo * ultima.aliquota) - ultima.deduzir;
 }
 
-// Função Interna: Calcula o IRRF com a Lei 2026
 function calcularIRRF(baseBruta, inssCalculado, dependentes, totalBruto, regras) {
-    
     // 1. REGRA DE OURO: Isenção pelo Bruto (Até 5k = Zero)
     if (regras.novaRegra2026.ativo && totalBruto <= regras.novaRegra2026.limiteIsencaoBruto) {
         return 0;
@@ -40,14 +38,11 @@ function calcularIRRF(baseBruta, inssCalculado, dependentes, totalBruto, regras)
     }
 
     // 3. REGRA DO REDUTOR (Faixa de Transição 5k - 7.35k)
-    // Se o bruto passou de 5k mas está na transição, ganha desconto extra.
     if (regras.novaRegra2026.ativo && 
         totalBruto > regras.novaRegra2026.limiteIsencaoBruto && 
         totalBruto <= regras.novaRegra2026.faixaTransicaoFim) {
         
-        // Fórmula: 978.61 - (0.133145 * Bruto)
         const valorRedutor = regras.novaRegra2026.parcelaFixaRedutor - (regras.novaRegra2026.fatorRedutor * totalBruto);
-        
         if (valorRedutor > 0) {
             impostoCalculado -= valorRedutor;
         }
@@ -60,9 +55,7 @@ function calcularIRRF(baseBruta, inssCalculado, dependentes, totalBruto, regras)
 export function calcularSalarioCompleto(inputs, regras) {
     const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
 
-    // Proteção: Se diasTrab vier vazio, assume 30 para não zerar o cálculo base
     const diasEfetivos = (!diasTrab || diasTrab === 0) ? 30 : diasTrab;
-
     const valorDia = salario / 30;
     const valorHora = salario / 220;
 
@@ -92,14 +85,12 @@ export function calcularSalarioCompleto(inputs, regras) {
     
     // Impostos
     const inss = calcularINSS(totalBruto, regras);
-    // IRRF: Passamos totalBruto para validar a isenção de 5k e o redutor
     const irrf = calcularIRRF(totalBruto, inss, dependentes, totalBruto, regras);
 
     const descontoPlano = regras.planosSESI[plano] || 0;
     const descontoSindicato = sindicato === 'sim' ? regras.valorSindicato : 0;
 
     const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
-    
     const liquido = totalBruto - totalDescontos;
 
     return {
