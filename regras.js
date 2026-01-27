@@ -1,4 +1,5 @@
 // regras.js
+// Fonte da Verdade para parâmetros fiscais e trabalhistas
 export const regras = {
     "anoVigencia": 2026,
     "salarioMinimo": 1518.00,
