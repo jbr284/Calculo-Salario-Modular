@@ -1,4 +1,4 @@
-// app.js - VERSÃO UNIFICADA, CORRIGIDA E SEPARADA (DSR HE vs DSR Noturno)
+// app.js - VERSÃO COM SUPORTE A VÍRGULA (PT-BR)
 
 const regras = {
     "anoVigencia": 2026,
@@ -72,7 +72,7 @@ function calcularSalarioCompleto(inputs, regras) {
     
     const totalHE = valorHE50 + valorHE60 + valorHE80 + valorHE100 + valorHE150;
     
-    // CÁLCULO SEPARADO DE DSR
+    // DSR Separado
     const dsrHE = (diasUteis > 0) ? (totalHE / diasUteis) * domFeriados : 0;
     const dsrNoturno = (diasUteis > 0) ? (valorNoturno / diasUteis) * domFeriados : 0;
     
@@ -109,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultContainer = document.getElementById('resultado-container');
     const mesReferenciaInput = document.getElementById('mesReferencia');
     
-    // Elementos de Férias
     const boxCalculoFerias = document.getElementById('box-calculo-ferias');
     const diasTrabInput = document.getElementById('diasTrab');
     const inicioFeriasInput = document.getElementById('inicioFerias'); 
@@ -136,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const liquidoMensal = liquido + descontos.adiantamento;
         const row = (label, val) => val > 0.01 ? `<tr><td>${label}</td><td class="valor">${formatarMoeda(val)}</td></tr>` : '';
 
-        // --- AQUI ESTÁ A CORREÇÃO: LINHAS SEPARADAS ---
         resultContainer.innerHTML = `
             <h2>Resultado do Cálculo - Modular</h2>
             <table class="result-table">
@@ -174,7 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarResultados();
     }
 
-    // --- LÓGICA DE FÉRIAS ---
     function alternarModoDias() {
         const opcaoSelecionada = document.querySelector('input[name="tipoDias"]:checked');
         if(!opcaoSelecionada) return;
@@ -256,9 +253,20 @@ document.addEventListener('DOMContentLoaded', () => {
         diasTrabInput.value = diasTrabalhados;
     }
 
-    // --- MAIN ---
+    // --- MANIPULAÇÃO DE INPUTS (CORREÇÃO DA VÍRGULA) ---
     function handleCalcular() {
-        const getVal = (id) => { const el = document.getElementById(id); const v = parseFloat(el?.value); return isNaN(v) ? 0 : v; };
+        const getVal = (id) => { 
+            const el = document.getElementById(id); 
+            if(!el) return 0;
+            // 1. Pega o valor como string
+            let valStr = el.value;
+            // 2. Troca vírgula por ponto (para o JS entender)
+            valStr = valStr.replace(',', '.');
+            // 3. Converte para Float
+            const v = parseFloat(valStr); 
+            return isNaN(v) ? 0 : v; 
+        };
+
         const inputs = {
             salario: getVal('salario'),
             diasTrab: getVal('diasTrab'),
@@ -356,6 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- EVENT LISTENERS ---
     document.getElementById('btn-calcular').addEventListener('click', handleCalcular);
     document.getElementById('btn-voltar').addEventListener('click', mostrarFormulario);
     document.getElementById('btn-salvar').addEventListener('click', salvarDadosFixos);
@@ -370,7 +379,15 @@ document.addEventListener('DOMContentLoaded', () => {
     inicioFeriasInput.addEventListener('change', calcularDiasProporcionaisFerias);
     qtdDiasFeriasInput.addEventListener('input', calcularDiasProporcionaisFerias);
     document.querySelectorAll('input[name="tipoDias"]').forEach(radio => radio.addEventListener('change', alternarModoDias));
-    document.querySelectorAll('.hora-conversivel').forEach(c => { c.addEventListener('blur', function() { let v = this.value.replace(':', '.'); if(v) this.value = parseFloat(v).toFixed(2); }); });
+    
+    // CORREÇÃO TAMBÉM NAS HORAS (Aceitar vírgula e dois pontos)
+    document.querySelectorAll('.hora-conversivel').forEach(c => { 
+        c.addEventListener('blur', function() { 
+            // Troca virgula por ponto E dois pontos por ponto
+            let v = this.value.replace(',', '.').replace(':', '.'); 
+            if(v) this.value = parseFloat(v).toFixed(2); 
+        }); 
+    });
 
     restaurarDadosFixos();
     alternarModoDias();
