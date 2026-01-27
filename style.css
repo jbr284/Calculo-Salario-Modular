@@ -1,13 +1,17 @@
-/* style.css */
+/* style.css - Versão Final Modular 2026 */
+
 :root {
-    --primary-color: #0d47a1;
-    --secondary-color: #6c757d;
-    --accent-color: #4CAF50;
-    --bg-color: #f4f7f6;
-    --card-bg: #ffffff;
-    --text-color: #333;
+    --primary-color: #0d47a1;       /* Azul Modular */
+    --primary-hover: #0a3a8d;
+    --secondary-color: #6c757d;     /* Cinza Botões Secundários */
+    --secondary-hover: #5a6268;
+    --accent-color: #4CAF50;        /* Verde (Sucesso/Adicionar) */
+    --danger-color: #d32f2f;        /* Vermelho (Limpar/PDF) */
+    --bg-color: #f4f7f6;            /* Fundo da Página */
+    --card-bg: #ffffff;             /* Fundo do Card */
+    --text-color: #333333;
     --border-color: #e0e0e0;
-    --shadow-light: 0 4px 10px rgba(0, 0, 0, 0.05);
+    --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 body {
@@ -26,31 +30,27 @@ body {
 .container {
     background-color: var(--card-bg);
     padding: 30px 40px;
-    border-radius: 10px;
+    border-radius: 12px;
     box-shadow: var(--shadow-light);
-    max-width: 1000px;
+    max-width: 900px;
     width: 100%;
     box-sizing: border-box;
 }
 
-h1 {
+/* --- Cabeçalho --- */
+.header-flex {
     text-align: center;
-    color: var(--primary-color);
     margin-bottom: 30px;
-    font-size: 2.2em;
+}
+
+h1 {
+    color: var(--primary-color);
+    margin: 0;
+    font-size: 2em;
     font-weight: 700;
 }
 
-h2.form-section-title {
-    font-size: 1.3em;
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 10px;
-    margin-top: 25px;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
+/* --- Layout do Formulário --- */
 .form-columns-container {
     display: flex;
     gap: 30px;
@@ -63,91 +63,268 @@ h2.form-section-title {
     min-width: 280px;
 }
 
+h2.form-section-title {
+    font-size: 1.2em;
+    color: var(--primary-color);
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+/* --- Inputs e Labels --- */
 .input-group {
-    margin-bottom: 18px;
+    margin-bottom: 15px;
 }
 
 .input-group label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     font-weight: 600;
-    color: var(--text-color);
+    color: #444;
     font-size: 0.95em;
 }
 
-.input-group input[type="number"],
-.input-group input[type="text"],
-.input-group input[type="month"],
-.input-group input[type="date"],
-.input-group select {
+input[type="number"],
+input[type="text"],
+input[type="month"],
+input[type="date"],
+select {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     font-size: 1em;
     box-sizing: border-box;
+    transition: border-color 0.3s;
 }
 
+input:focus, select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+input[readonly] {
+    background-color: #f0f0f0;
+    color: #555;
+    cursor: not-allowed;
+}
+
+/* --- Radio Buttons --- */
 .radio-group {
     display: flex;
-    gap: 15px;
-    margin-top: 5px;
-    margin-bottom: 10px;
+    gap: 10px;
 }
 
 .radio-group label {
     font-weight: normal;
-    font-size: 0.95em;
+    cursor: pointer;
     display: flex;
     align-items: center;
+    gap: 5px;
+}
+
+/* --- Botões --- */
+button {
     cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.98);
 }
 
 .btn-primary, .btn-secondary {
-    padding: 12px 25px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1.1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-top: 20px;
     width: 100%;
-    box-sizing: border-box;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-top: 20px;
 }
 
-.btn-primary { background-color: var(--primary-color); color: white; }
-.btn-primary:hover { background-color: #0a3a8d; }
-.btn-secondary { background-color: var(--secondary-color); color: white; margin-top: 10px; }
-.btn-secondary:hover { background-color: #5a6268; }
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
 
-#result-view { margin-top: 30px; }
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+    margin-top: 0; /* Ajuste para botões lado a lado */
+}
+.btn-secondary:hover {
+    background-color: var(--secondary-hover);
+}
+
+/* Botões Pequenos (Adicionar/Limpar Feriados) */
+.btn-small {
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    background-color: var(--primary-color);
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+}
+.btn-danger:hover {
+    background-color: #b71c1c;
+}
+
+/* --- Área de Férias e Feriados --- */
+.feriado-container {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    background-color: #fcfcfc;
+    transition: all 0.3s ease;
+}
+
+.feriado-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.lista-feriados {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 5px;
+}
+
+.feriado-box {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.feriado-box:hover {
+    background-color: #ccc;
+    text-decoration: line-through;
+}
+
+/* --- Tabela de Resultados --- */
+#result-view {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
 #resultado-container {
-    background-color: #f9f9f9;
+    background-color: #fff;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 25px;
-    margin-bottom: 25px;
+    padding: 20px;
+    margin-bottom: 20px;
 }
 
-.result-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-.result-table th, .result-table td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; }
-.result-table th { background-color: #f0f0f0; font-weight: 600; color: #555; text-transform: uppercase; font-size: 0.9em; }
-.result-table td.valor { text-align: right; font-weight: 500; }
-.result-table .section-header td { background-color: var(--primary-color); color: white; font-weight: 700; text-align: center; padding: 10px 15px; margin-top: 15px; }
-.result-table .summary-row td { font-weight: 600; background-color: #e6f0ff; }
-.result-table .final-result-main td { font-weight: 700; font-size: 1.2em; background-color: #d0e6ff; border-top: 2px solid var(--primary-color); }
-.result-table .final-result-secondary td { font-weight: 600; background-color: #e6f0ff; font-size: 0.95em; }
-.result-table .fgts-row td { font-style: italic; font-size: 0.9em; color: #666; }
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
 
-.feriado-container { border: 1px solid var(--border-color); border-radius: 5px; padding: 10px; background-color: #fcfcfc; }
-.feriado-actions { display: flex; gap: 10px; margin-bottom: 10px; }
-.lista-feriados { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 5px; min-height: 30px; }
-.feriado-box { background-color: #e0e0e0; color: #333; padding: 5px 10px; border-radius: 4px; font-size: 0.85em; cursor: pointer; }
-.feriado-box:hover { background-color: #ccc; }
+.result-table th, .result-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+}
 
-.hidden { display: none !important; }
+.result-table th {
+    background-color: #f8f9fa;
+    text-align: left;
+    color: #555;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+}
 
+.result-table td.valor {
+    text-align: right;
+    font-family: 'Consolas', monospace; /* Fonte monoespaçada para alinhar números */
+    font-weight: 600;
+    color: #333;
+}
+
+/* Estilos de Linhas Específicas */
+.section-header td {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 700;
+    text-align: center;
+    padding: 8px;
+}
+
+.summary-row td {
+    background-color: #e3f2fd;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.final-result-main td {
+    background-color: #bbdefb;
+    font-size: 1.3em;
+    font-weight: 800;
+    color: var(--primary-color);
+    border-top: 2px solid var(--primary-color);
+    padding: 15px 10px;
+}
+
+.final-result-secondary td {
+    background-color: #e3f2fd;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.fgts-row td {
+    font-style: italic;
+    color: #666;
+    font-size: 0.9em;
+    background-color: transparent;
+}
+
+/* --- Utilitários --- */
+.hidden {
+    display: none !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Responsividade --- */
 @media (max-width: 768px) {
-    .form-columns-container { flex-direction: column; }
-    .feriado-actions { flex-direction: column; }
+    .container {
+        padding: 20px;
+    }
+    
+    .form-columns-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .feriado-actions {
+        flex-wrap: wrap;
+    }
+    
+    .feriado-actions input {
+        width: 60px;
+    }
+    
+    .result-table th, .result-table td {
+        padding: 8px 5px;
+        font-size: 0.9em;
+    }
 }
