@@ -1,4 +1,4 @@
-// app.js - VERSÃO COM SUPORTE A VÍRGULA (PT-BR)
+// app.js - VERSÃO DETALHADA E CORRIGIDA (Modular 2026)
 
 const regras = {
     "anoVigencia": 2026,
@@ -6,9 +6,9 @@ const regras = {
     "tetoINSS": 8157.41,
     "percentualAdiantamento": 0.4,       // 40% (Modular)
     "percentualAdicionalNoturno": 0.35,  // 35% (Modular)
-    "descontoFixoVA": 23.97,             // Modular
+    "descontoFixoVA": 23.97,             // Valor Fixo Modular
     "percentualVT": 0.06,
-    "valorSindicato": 47.5,              // Modular
+    "valorSindicato": 47.5,              // Valor Fixo Modular
     "deducaoPorDependenteIRRF": 189.59,
     
     "tabelaINSS": [
@@ -33,7 +33,7 @@ const regras = {
     }
 };
 
-// --- MOTOR DE CÁLCULO ---
+// --- CÁLCULOS TRIBUTÁRIOS ---
 function calcularINSS(base, regras) {
     if (base > regras.tetoINSS) base = regras.tetoINSS;
     for (const faixa of regras.tabelaINSS) {
@@ -54,6 +54,7 @@ function calcularIRRF(base, dependentes, regras) {
     return 0;
 }
 
+// --- CÁLCULO GERAL DA FOLHA ---
 function calcularSalarioCompleto(inputs, regras) {
     const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
     
@@ -61,7 +62,7 @@ function calcularSalarioCompleto(inputs, regras) {
     const valorDia = salario / 30;
     const valorHora = salario / 220;
 
-    // PROVENTOS
+    // --- PROVENTOS DETALHADOS ---
     const vencBase = valorDia * diasEfetivos;
     const valorHE50 = he50 * valorHora * 1.5;
     const valorHE60 = he60 * valorHora * 1.6;
@@ -70,15 +71,16 @@ function calcularSalarioCompleto(inputs, regras) {
     const valorHE150 = he150 * valorHora * 2.5;
     const valorNoturno = noturno * valorHora * regras.percentualAdicionalNoturno;
     
+    // Soma para base de cálculo (mas não para exibição agrupada)
     const totalHE = valorHE50 + valorHE60 + valorHE80 + valorHE100 + valorHE150;
     
-    // DSR Separado
+    // DSRs Separados
     const dsrHE = (diasUteis > 0) ? (totalHE / diasUteis) * domFeriados : 0;
     const dsrNoturno = (diasUteis > 0) ? (valorNoturno / diasUteis) * domFeriados : 0;
     
     const totalBruto = vencBase + totalHE + valorNoturno + dsrHE + dsrNoturno;
 
-    // DESCONTOS
+    // --- DESCONTOS ---
     const fgts = totalBruto * 0.08;
     const descontoFaltas = faltas * valorDia;
     const descontoAtrasos = atrasos * valorHora;
@@ -96,19 +98,28 @@ function calcularSalarioCompleto(inputs, regras) {
     const liquido = totalBruto - totalDescontos;
 
     return {
-        proventos: { vencBase, valorHE50, valorHE60, valorHE80, valorHE100, valorHE150, valorNoturno, dsrHE, dsrNoturno, totalBruto },
-        descontos: { descontoFaltas, descontoAtrasos, descontoPlano, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos },
+        proventos: { 
+            vencBase, 
+            valorHE50, valorHE60, valorHE80, valorHE100, valorHE150, 
+            valorNoturno, 
+            dsrHE, dsrNoturno, 
+            totalBruto 
+        },
+        descontos: { 
+            descontoFaltas, descontoAtrasos, descontoPlano, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos 
+        },
         fgts, liquido
     };
 }
 
-// --- INTERFACE ---
+// --- INTERFACE (LÓGICA DE UI) ---
 document.addEventListener('DOMContentLoaded', () => {
     const formView = document.getElementById('form-view');
     const resultView = document.getElementById('result-view');
     const resultContainer = document.getElementById('resultado-container');
     const mesReferenciaInput = document.getElementById('mesReferencia');
     
+    // Elementos de Férias
     const boxCalculoFerias = document.getElementById('box-calculo-ferias');
     const diasTrabInput = document.getElementById('diasTrab');
     const inicioFeriasInput = document.getElementById('inicioFerias'); 
@@ -130,9 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
+    // --- RENDERIZAÇÃO DA TABELA (DETALHADA) ---
     function renderizarResultados(resultado) {
         const { proventos, descontos, liquido, fgts } = resultado;
         const liquidoMensal = liquido + descontos.adiantamento;
+        
+        // Função auxiliar para criar linha apenas se valor > 0
         const row = (label, val) => val > 0.01 ? `<tr><td>${label}</td><td class="valor">${formatarMoeda(val)}</td></tr>` : '';
 
         resultContainer.innerHTML = `
@@ -142,7 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tbody>
                     <tr class="section-header"><td colspan="2">Proventos</td></tr>
                     ${row('Salário Base Proporcional', proventos.vencBase)}
-                    ${row('Horas Extras (Total)', proventos.valorHE50+proventos.valorHE60+proventos.valorHE80+proventos.valorHE100+proventos.valorHE150)}
+                    
+                    ${row('Hora Extra 50%', proventos.valorHE50)}
+                    ${row('Hora Extra 60%', proventos.valorHE60)}
+                    ${row('Hora Extra 80%', proventos.valorHE80)}
+                    ${row('Hora Extra 100%', proventos.valorHE100)}
+                    ${row('Hora Extra 150%', proventos.valorHE150)}
+                    
                     ${row('Adicional Noturno (35%)', proventos.valorNoturno)}
                     
                     ${row('DSR sobre Horas Extras', proventos.dsrHE)}
@@ -153,17 +173,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr class="section-header"><td colspan="2">Descontos</td></tr>
                     ${row('INSS', descontos.inss)}
                     ${row('IRRF', descontos.irrf)}
-                    ${row('Faltas/Atrasos', descontos.descontoFaltas + descontos.descontoAtrasos)}
+                    ${row('Faltas (dias)', descontos.descontoFaltas)}
+                    ${row('Atrasos (horas)', descontos.descontoAtrasos)}
                     ${row('Adiantamento (40%)', descontos.adiantamento)}
                     ${row('Vale Transporte (6%)', descontos.descontoVT)}
                     ${row('Vale Alimentação (Fixo)', descontos.descontoVA)}
                     ${row('Convênio SESI', descontos.descontoPlano)}
-                    ${row('Sindicato', descontos.descontoSindicato)}
-                    ${row('Empréstimo', descontos.emprestimo)}
+                    ${row('Mensalidade Sindical', descontos.descontoSindicato)}
+                    ${row('Empréstimo Consignado', descontos.emprestimo)}
+                    
                     <tr class="summary-row"><td>Total Descontos</td><td class="valor">${formatarMoeda(descontos.totalDescontos)}</td></tr>
                     
                     <tr class="section-header"><td colspan="2">Resumo Final</td></tr>
-                    <tr class="final-result-main"><td>Salário Líquido</td><td class="valor">${formatarMoeda(liquido)}</td></tr>
+                    <tr class="final-result-main"><td>Salário Líquido (A Receber)</td><td class="valor">${formatarMoeda(liquido)}</td></tr>
                     <tr class="final-result-secondary"><td>Salário Líquido Total (Mês)</td><td class="valor">${formatarMoeda(liquidoMensal)}</td></tr>
                     <tr class="final-result-secondary fgts-row"><td>FGTS (Depósito)</td><td class="valor">${formatarMoeda(fgts)}</td></tr>
                 </tbody>
@@ -172,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarResultados();
     }
 
+    // --- LÓGICA DE FÉRIAS (HÍBRIDA / BLINDADA) ---
     function alternarModoDias() {
         const opcaoSelecionada = document.querySelector('input[name="tipoDias"]:checked');
         if(!opcaoSelecionada) return;
@@ -253,16 +276,15 @@ document.addEventListener('DOMContentLoaded', () => {
         diasTrabInput.value = diasTrabalhados;
     }
 
-    // --- MANIPULAÇÃO DE INPUTS (CORREÇÃO DA VÍRGULA) ---
+    // --- LEITURA DE INPUTS (COM SUPORTE A VÍRGULA) ---
     function handleCalcular() {
         const getVal = (id) => { 
             const el = document.getElementById(id); 
             if(!el) return 0;
-            // 1. Pega o valor como string
-            let valStr = el.value;
-            // 2. Troca vírgula por ponto (para o JS entender)
-            valStr = valStr.replace(',', '.');
-            // 3. Converte para Float
+            // Troca vírgula por ponto para cálculo
+            let valStr = el.value.replace(/\./g, '').replace(',', '.'); // Remove ponto de milhar se houver, troca virgula decimal
+            // Se o usuário digitou "1.500,00", o replace acima vira "1500.00"
+            // Se digitou apenas "1500,00", vira "1500.00"
             const v = parseFloat(valStr); 
             return isNaN(v) ? 0 : v; 
         };
@@ -290,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarResultados(resultado);
     }
 
+    // --- FERIADOS E AUTO-PREENCHIMENTO ---
     function adicionarFeriado() {
         const dia = document.getElementById('diaFeriado').value;
         const mesAno = document.getElementById('mesReferencia').value;
@@ -380,10 +403,9 @@ document.addEventListener('DOMContentLoaded', () => {
     qtdDiasFeriasInput.addEventListener('input', calcularDiasProporcionaisFerias);
     document.querySelectorAll('input[name="tipoDias"]').forEach(radio => radio.addEventListener('change', alternarModoDias));
     
-    // CORREÇÃO TAMBÉM NAS HORAS (Aceitar vírgula e dois pontos)
+    // Tratamento de Horas (vírgula e dois pontos)
     document.querySelectorAll('.hora-conversivel').forEach(c => { 
         c.addEventListener('blur', function() { 
-            // Troca virgula por ponto E dois pontos por ponto
             let v = this.value.replace(',', '.').replace(':', '.'); 
             if(v) this.value = parseFloat(v).toFixed(2); 
         }); 
