@@ -1,120 +1,12 @@
-// app.js - VERSÃO FINAL 2026 (PDF PERFEITO SEM CORTES) 📄✨
+// app.js - VERSÃO MODULAR (Clean Architecture)
+// Agora importa a lógica de negócio, mantendo a UI separada.
+
+import { regras } from './regras.js';
+import { calcularSalarioCompleto } from './calculadora-regras.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 1. REGRAS LEI 15.270 (2026) ---
-    const regras = {
-        anoVigencia: 2026,
-        salarioMinimo: 1518.00,
-        tetoINSS: 8157.41,
-        percentualAdiantamento: 0.4,
-        percentualAdicionalNoturno: 0.35,
-        descontoFixoVA: 23.97,
-        percentualVT: 0.06,
-        valorSindicato: 47.5,
-        descontoSimplificado: 564.80, 
-        deducaoPorDependenteIRRF: 189.59,
-        novaRegra2026: {
-          ativo: true,
-          limiteIsencaoBruto: 5000.00,
-          faixaTransicaoFim: 7350.00,
-          fatorRedutor: 0.133145,
-          parcelaFixaRedutor: 978.61
-        },
-        tabelaINSS: [
-          { ate: 1518.00, aliquota: 0.075, deduzir: 0 },
-          { ate: 2793.88, aliquota: 0.09, deduzir: 22.77 },
-          { ate: 4190.83, aliquota: 0.12, deduzir: 106.59 },
-          { ate: 8157.41, aliquota: 0.14, deduzir: 190.41 }
-        ],
-        tabelaIRRF: [
-          { ate: 2259.20, aliquota: 0, deduzir: 0 },
-          { ate: 2826.65, aliquota: 0.075, deduzir: 169.44 },
-          { ate: 3751.05, aliquota: 0.15, deduzir: 381.44 },
-          { ate: 4664.68, aliquota: 0.225, deduzir: 662.77 },
-          { ate: 999999, aliquota: 0.275, deduzir: 896.00 }
-        ],
-        planosSESI: { nenhum: 0, basico_individual: 29, basico_familiar: 58, plus_individual: 115, plus_familiar: 180 }
-    };
-
-    // --- 2. CÁLCULOS ---
-    function calcularINSS(base) {
-        if (base > regras.tetoINSS) base = regras.tetoINSS;
-        for (const f of regras.tabelaINSS) {
-            if (base <= f.ate) return (base * f.aliquota) - f.deduzir;
-        }
-        const ult = regras.tabelaINSS[regras.tabelaINSS.length - 1];
-        return (base * ult.aliquota) - ult.deduzir;
-    }
-
-    function calcularIRRF(baseBruta, inss, deps, totalBruto) {
-        if (regras.novaRegra2026.ativo && totalBruto <= regras.novaRegra2026.limiteIsencaoBruto) return 0;
-
-        const baseLegal = baseBruta - inss - (deps * regras.deducaoPorDependenteIRRF);
-        const baseSimples = baseBruta - regras.descontoSimplificado;
-        let baseFinal = Math.min(baseLegal, baseSimples);
-        if (baseFinal < 0) baseFinal = 0;
-
-        let impostoCalculado = 0;
-        for (const f of regras.tabelaIRRF) {
-            if (baseFinal <= f.ate) {
-                impostoCalculado = (baseFinal * f.aliquota) - f.deduzir;
-                break;
-            }
-        }
-
-        if (regras.novaRegra2026.ativo && totalBruto > 5000 && totalBruto <= 7350) {
-            const redutor = regras.novaRegra2026.parcelaFixaRedutor - (regras.novaRegra2026.fatorRedutor * totalBruto);
-            if (redutor > 0) impostoCalculado -= redutor;
-        }
-
-        return Math.max(0, impostoCalculado);
-    }
-
-    function calcularSalarioCompleto(inputs) {
-        const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
-        const diasEfetivos = (diasTrab === "" || diasTrab === 0) ? 30 : diasTrab;
-        const valorDia = salario / 30;
-        const valorHora = salario / 220;
-
-        // Proventos
-        const vencBase = valorDia * diasEfetivos;
-        const valorHE50 = he50 * valorHora * 1.5;
-        const valorHE60 = he60 * valorHora * 1.6;
-        const valorHE80 = he80 * valorHora * 1.8;
-        const valorHE100 = he100 * valorHora * 2.0;
-        const valorHE150 = he150 * valorHora * 2.5;
-        const valorNoturno = noturno * valorHora * regras.percentualAdicionalNoturno;
-        
-        const totalHE = valorHE50 + valorHE60 + valorHE80 + valorHE100 + valorHE150;
-        const dsrHE = (diasUteis > 0) ? (totalHE / diasUteis) * domFeriados : 0;
-        const dsrNoturno = (diasUteis > 0) ? (valorNoturno / diasUteis) * domFeriados : 0;
-        const totalBruto = vencBase + totalHE + valorNoturno + dsrHE + dsrNoturno;
-
-        // Descontos
-        const fgts = totalBruto * 0.08;
-        const descontoFaltas = faltas * valorDia;
-        const descontoAtrasos = atrasos * valorHora;
-        const adiantamento = (salario / 30) * diasEfetivos * regras.percentualAdiantamento;
-        const descontoVA = regras.descontoFixoVA;
-        const descontoVT = descontarVT ? (salario * regras.percentualVT) : 0;
-        
-        const inss = calcularINSS(totalBruto);
-        const irrf = calcularIRRF(totalBruto, inss, dependentes, totalBruto);
-        const descontoPlano = regras.planosSESI[plano] || 0;
-        const descontoSindicato = sindicato === 'sim' ? regras.valorSindicato : 0;
-
-        const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
-        const liquido = totalBruto - totalDescontos;
-
-        return {
-            proventos: { vencBase, valorHE50, valorHE60, valorHE80, valorHE100, valorHE150, valorNoturno, dsrHE, dsrNoturno, totalBruto },
-            descontos: { descontoFaltas, descontoAtrasos, descontoPlano, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos },
-            fgts, liquido
-        };
-    }
-
-    // --- 3. FUNÇÕES DE CALENDÁRIO ---
+    // --- 1. FUNÇÕES DE CALENDÁRIO (UI Logic) ---
     function preencherDiasMes() {
         const mesAno = document.getElementById('mesReferencia').value;
         if (!mesAno) return;
@@ -187,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 4. INTERFACE ---
+    // --- 2. INTERFACE (UI) ---
     const formView = document.getElementById('form-view');
     const resultView = document.getElementById('result-view');
     const resultContainer = document.getElementById('resultado-container');
@@ -209,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const row = (l, v) => v > 0.01 ? `<tr><td>${l}</td><td class="valor">${formatarMoeda(v)}</td></tr>` : '';
 
-        // Tabela limpa para PDF perfeito
+        // Template HTML do resultado
         resultContainer.innerHTML = `
             <table class="result-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                 <thead>
@@ -258,24 +150,16 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo(0,0);
     }
 
-    // --- FUNÇÃO EXPORTAR PDF (CORRIGIDA) ---
+    // --- FUNÇÃO EXPORTAR PDF ---
     document.getElementById('btn-pdf').addEventListener('click', () => {
         const elemento = document.getElementById('resultado-container');
-        
-        // Configurações cruciais para evitar cortes e espaços em branco
         const opt = {
-            margin:       10,
-            filename:     'calculo-salario-2026.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { 
-                scale: 2, 
-                scrollY: 0, // O SEGREDO: Isso remove o espaço em branco do topo!
-                logging: false
-            },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: 10,
+            filename: 'calculo-salario-2026.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, scrollY: 0, logging: false },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-
-        // Gera o PDF
         html2pdf().set(opt).from(elemento).save();
     });
 
@@ -307,7 +191,11 @@ document.addEventListener('DOMContentLoaded', () => {
             sindicato: document.getElementById('sindicato').value,
             descontarVT: document.getElementById('descontar_vt').value === 'sim'
         };
-        const resultado = calcularSalarioCompleto(inputs);
+        
+        // AQUI ESTÁ A MÁGICA DA MODULARIZAÇÃO:
+        // Passamos os inputs e as regras (importadas) para a função de cálculo (importada)
+        const resultado = calcularSalarioCompleto(inputs, regras);
+        
         renderizarResultados(resultado);
     });
 
@@ -316,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formView.classList.remove('hidden');
     });
 
-    // Salvar/Restaurar
+    // Salvar/Restaurar (localStorage)
     document.getElementById('btn-salvar').addEventListener('click', () => {
         const dados = {
             salario: document.getElementById('salario').value,
@@ -405,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
     alternarModoDias();
     preencherDiasMes();
     
+    // PWA Service Worker
     if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
         navigator.serviceWorker.register('sw.js').catch(() => {});
     }
