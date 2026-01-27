@@ -1,5 +1,5 @@
 // Aumentamos a versão para forçar a atualização dos novos arquivos
-const CACHE_NAME = 'salario-Modular-cache-v32'; 
+const CACHE_NAME = 'salario-Modular-cache-v33'; 
 const urlsToCache = [
   './',
   'index.html',
@@ -70,5 +70,6 @@ self.addEventListener('fetch', event => {
     );
   }
 });
+
 
 
