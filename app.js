@@ -1,14 +1,14 @@
-// app.js - VERSÃO UNIFICADA & CORRIGIDA (Modular 2026)
+// app.js - VERSÃO UNIFICADA, CORRIGIDA E SEPARADA (DSR HE vs DSR Noturno)
 
 const regras = {
     "anoVigencia": 2026,
     "salarioMinimo": 1518.00,
     "tetoINSS": 8157.41,
-    "percentualAdiantamento": 0.4,       
-    "percentualAdicionalNoturno": 0.35,  
-    "descontoFixoVA": 23.97,             
+    "percentualAdiantamento": 0.4,       // 40% (Modular)
+    "percentualAdicionalNoturno": 0.35,  // 35% (Modular)
+    "descontoFixoVA": 23.97,             // Modular
     "percentualVT": 0.06,
-    "valorSindicato": 47.5,              
+    "valorSindicato": 47.5,              // Modular
     "deducaoPorDependenteIRRF": 189.59,
     
     "tabelaINSS": [
@@ -33,6 +33,7 @@ const regras = {
     }
 };
 
+// --- MOTOR DE CÁLCULO ---
 function calcularINSS(base, regras) {
     if (base > regras.tetoINSS) base = regras.tetoINSS;
     for (const faixa of regras.tabelaINSS) {
@@ -55,10 +56,12 @@ function calcularIRRF(base, dependentes, regras) {
 
 function calcularSalarioCompleto(inputs, regras) {
     const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
+    
     const diasEfetivos = (!diasTrab || diasTrab === 0) ? 30 : diasTrab;
     const valorDia = salario / 30;
     const valorHora = salario / 220;
 
+    // PROVENTOS
     const vencBase = valorDia * diasEfetivos;
     const valorHE50 = he50 * valorHora * 1.5;
     const valorHE60 = he60 * valorHora * 1.6;
@@ -68,10 +71,14 @@ function calcularSalarioCompleto(inputs, regras) {
     const valorNoturno = noturno * valorHora * regras.percentualAdicionalNoturno;
     
     const totalHE = valorHE50 + valorHE60 + valorHE80 + valorHE100 + valorHE150;
+    
+    // CÁLCULO SEPARADO DE DSR
     const dsrHE = (diasUteis > 0) ? (totalHE / diasUteis) * domFeriados : 0;
     const dsrNoturno = (diasUteis > 0) ? (valorNoturno / diasUteis) * domFeriados : 0;
+    
     const totalBruto = vencBase + totalHE + valorNoturno + dsrHE + dsrNoturno;
 
+    // DESCONTOS
     const fgts = totalBruto * 0.08;
     const descontoFaltas = faltas * valorDia;
     const descontoAtrasos = atrasos * valorHora;
@@ -84,6 +91,7 @@ function calcularSalarioCompleto(inputs, regras) {
     const irrf = calcularIRRF(baseIRRF, dependentes, regras);
     const descontoPlano = regras.planosSESI[plano] || 0;
     const descontoSindicato = sindicato === 'sim' ? regras.valorSindicato : 0;
+    
     const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
     const liquido = totalBruto - totalDescontos;
 
@@ -94,20 +102,19 @@ function calcularSalarioCompleto(inputs, regras) {
     };
 }
 
+// --- INTERFACE ---
 document.addEventListener('DOMContentLoaded', () => {
     const formView = document.getElementById('form-view');
     const resultView = document.getElementById('result-view');
     const resultContainer = document.getElementById('resultado-container');
     const mesReferenciaInput = document.getElementById('mesReferencia');
     
-    // Férias
+    // Elementos de Férias
     const boxCalculoFerias = document.getElementById('box-calculo-ferias');
     const diasTrabInput = document.getElementById('diasTrab');
     const inicioFeriasInput = document.getElementById('inicioFerias'); 
     const qtdDiasFeriasInput = document.getElementById('qtdDiasFerias');
     const feedbackFerias = document.getElementById('feedback-ferias');
-    
-    // IDs cruciais para o bug anterior
     const colQtd = document.getElementById('col-qtd');
     const lblData = document.getElementById('lbl-data-ferias');
 
@@ -129,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const liquidoMensal = liquido + descontos.adiantamento;
         const row = (label, val) => val > 0.01 ? `<tr><td>${label}</td><td class="valor">${formatarMoeda(val)}</td></tr>` : '';
 
+        // --- AQUI ESTÁ A CORREÇÃO: LINHAS SEPARADAS ---
         resultContainer.innerHTML = `
             <h2>Resultado do Cálculo - Modular</h2>
             <table class="result-table">
@@ -136,10 +144,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tbody>
                     <tr class="section-header"><td colspan="2">Proventos</td></tr>
                     ${row('Salário Base Proporcional', proventos.vencBase)}
-                    ${row('Total Horas Extras', proventos.valorHE50+proventos.valorHE60+proventos.valorHE80+proventos.valorHE100+proventos.valorHE150)}
+                    ${row('Horas Extras (Total)', proventos.valorHE50+proventos.valorHE60+proventos.valorHE80+proventos.valorHE100+proventos.valorHE150)}
                     ${row('Adicional Noturno (35%)', proventos.valorNoturno)}
-                    ${row('DSR', proventos.dsrHE + proventos.dsrNoturno)}
+                    
+                    ${row('DSR sobre Horas Extras', proventos.dsrHE)}
+                    ${row('DSR sobre Adic. Noturno', proventos.dsrNoturno)}
+                    
                     <tr class="summary-row"><td>Total Bruto</td><td class="valor">${formatarMoeda(proventos.totalBruto)}</td></tr>
+                    
                     <tr class="section-header"><td colspan="2">Descontos</td></tr>
                     ${row('INSS', descontos.inss)}
                     ${row('IRRF', descontos.irrf)}
@@ -151,6 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${row('Sindicato', descontos.descontoSindicato)}
                     ${row('Empréstimo', descontos.emprestimo)}
                     <tr class="summary-row"><td>Total Descontos</td><td class="valor">${formatarMoeda(descontos.totalDescontos)}</td></tr>
+                    
+                    <tr class="section-header"><td colspan="2">Resumo Final</td></tr>
                     <tr class="final-result-main"><td>Salário Líquido</td><td class="valor">${formatarMoeda(liquido)}</td></tr>
                     <tr class="final-result-secondary"><td>Salário Líquido Total (Mês)</td><td class="valor">${formatarMoeda(liquidoMensal)}</td></tr>
                     <tr class="final-result-secondary fgts-row"><td>FGTS (Depósito)</td><td class="valor">${formatarMoeda(fgts)}</td></tr>
@@ -160,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarResultados();
     }
 
-    // --- LÓGICA DE FÉRIAS HÍBRIDA ---
+    // --- LÓGICA DE FÉRIAS ---
     function alternarModoDias() {
         const opcaoSelecionada = document.querySelector('input[name="tipoDias"]:checked');
         if(!opcaoSelecionada) return;
@@ -176,8 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
             feedbackFerias.textContent = "";
         } else {
             boxCalculoFerias.classList.remove('hidden');
-            
-            // Lógica de UI para Retorno
             if (modo === 'retorno_ferias') {
                 colQtd.classList.add('hidden'); 
                 lblData.textContent = "Dia do Retorno"; 
@@ -244,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         diasTrabInput.value = diasTrabalhados;
     }
 
-    // --- Main ---
+    // --- MAIN ---
     function handleCalcular() {
         const getVal = (id) => { const el = document.getElementById(id); const v = parseFloat(el?.value); return isNaN(v) ? 0 : v; };
         const inputs = {
