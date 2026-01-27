@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Calculadora de Salário MODULAR DTC</title>
+  <title>Calculadora Modular DTC 2026</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
@@ -11,7 +11,9 @@
 </head>
 <body>
   <div class="container">
-    <h1>Cálculo de Salário Mensal</h1>
+    <div class="header-flex">
+        <h1>Cálculo de Salário (Modular)</h1>
+        </div>
     
     <div id="form-view">
         <form id="formulario">
@@ -24,115 +26,89 @@
                     <h2 class="form-section-title">Dados Iniciais</h2>
                     
                     <div class="input-group">
-                        <label for="mesReferencia">Mês de Referência (Obrigatório)</label>
+                        <label for="mesReferencia">Mês de Referência</label>
                         <input type="month" id="mesReferencia" required />
                     </div>
 
                     <div class="input-group">
                         <label for="salario">Salário Mensal (R$)</label>
-                        <input type="number" id="salario" required />
+                        <input type="number" id="salario" placeholder="0,00" required />
                     </div>
-                    
+
                     <div class="input-group">
-                        <label>Situação do Funcionário no Mês</label>
-                        <div class="radio-group" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                        <label for="dependentes">Dependentes (IRRF)</label>
+                        <input type="number" id="dependentes" value="0" />
+                    </div>
+
+                    <div class="input-group">
+                        <label>Situação do Funcionário</label>
+                        <div class="radio-group" style="flex-direction: column; gap: 8px;">
                             <label><input type="radio" name="tipoDias" value="completo" checked /> 1. Mês Completo (30 Dias)</label>
-                            <label><input type="radio" name="tipoDias" value="saida_ferias" /> 2. Mês de Férias</label>
-                            <label><input type="radio" name="tipoDias" value="retorno_ferias" /> 3. Mês de Retorno de Férias</label>
+                            <label><input type="radio" name="tipoDias" value="saida_ferias" /> 2. Saída de Férias</label>
+                            <label><input type="radio" name="tipoDias" value="retorno_ferias" /> 3. Retorno de Férias</label>
                         </div>
                         
-                        <div id="box-calculo-ferias" class="feriado-container hidden" style="margin-top: 10px; background-color: #e3f2fd; border: 1px solid #90caf9; padding: 10px; border-radius: 8px;">
-                            <label style="font-size: 0.95em; color: #0d47a1; margin-bottom: 8px; display:block; font-weight:bold;">Dados para o Cálculo:</label>
-                            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; align-items: end;">
+                        <div id="box-calculo-ferias" class="feriado-container hidden" style="margin-top:10px; background-color: #e3f2fd; border: 1px solid #90caf9;">
+                            <label style="font-size: 0.9em; color: #0d47a1; font-weight:bold; display:block; margin-bottom:5px;">Dados das Férias:</label>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                 <div id="col-data">
-                                    <label id="lbl-data-ferias" for="inicioFerias" style="font-size: 0.85em; display: block; margin-bottom: 4px; color: #333; white-space: nowrap;">Dia do Mês</label>
-                                    <select id="inicioFerias" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #bbb; border-radius: 4px;">
-                                        <option value="">Selecione</option>
-                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
+                                    <label id="lbl-data-ferias" style="font-size:0.85em;">Dia do Mês</label>
+                                    <select id="inicioFerias" style="width: 100%; padding: 8px;">
+                                        <option value="">Selecione o Dia</option>
+                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                        <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                                        <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
+                                        <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+                                        <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
+                                        <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
                                     </select>
                                 </div>
                                 <div id="col-qtd">
-                                    <label for="qtdDiasFerias" style="font-size: 0.85em; display: block; margin-bottom: 4px; color: #333; white-space: nowrap;">Qtd. Dias</label>
-                                    <input type="number" id="qtdDiasFerias" placeholder="Ex: 30" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #bbb; border-radius: 4px;">
+                                    <label style="font-size:0.85em;">Duração (Dias)</label>
+                                    <input type="number" id="qtdDiasFerias" placeholder="Ex: 30">
                                 </div>
                             </div>
-                            <p id="feedback-ferias" style="font-size: 0.85em; color: #555; margin-top: 10px; font-style: italic; line-height: 1.4; border-top: 1px solid #bbdefb; padding-top: 8px; min-height: 20px;"></p>
+                            <p id="feedback-ferias" style="font-size: 0.85em; color: #555; margin-top: 5px; font-style: italic; min-height: 20px;"></p>
                         </div>
-                    
-                        <label for="diasTrab" style="margin-top: 10px; display: block;">Dias de Salário a Pagar</label>
-                        <input type="number" id="diasTrab" required readonly style="background-color: #f0f0f0; font-weight: bold; color: #0d47a1;" />
-                    </div>
-                    <div class="input-group">
-                        <label for="dependentes">Dependentes</label>
-                        <input type="number" id="dependentes" />
-                    </div>
-                    
-                    <div class="input-group">
-                        <label class="form-section-title" style="margin: 0; font-size: 1.1em;">Feriados Regionais</label>
-                        <div class="feriado-container">
-                            <p style="font-size: 0.85em; color: #555; margin-bottom: 8px; margin-top: 0; line-height: 1.3;">
-                                <strong style="color: #0d47a1;">Dica:</strong> Adicione aqui feriados municipais e estaduais para o cálculo correto do DSR.
-                            </p>
-                            <div class="feriado-actions">
-                                <select id="diaFeriado">
-                                    <option value="">Dia</option>
-                                    <option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
-                                </select>
-                                <button type="button" id="btn-add-feriado">Adicionar</button>
-                                <button type="button" id="btn-limpar-feriados" style="background:#c00; color: white; font-weight: bold;">Limpar</button>
-                            </div>
-                            <div id="listaFeriados" class="lista-feriados"></div>
+                        
+                        <div style="margin-top:10px;">
+                           <label style="font-size:0.9em; font-weight:bold;">Dias a Pagar (Automático):</label>
+                           <input type="number" id="diasTrab" readonly style="background:#e0e0e0; font-weight:bold; color:#0d47a1;" />
                         </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="form-section-title" style="margin-top:10px; font-size:1em;">Feriados Locais</label>
+                        <div class="feriado-actions">
+                            <input type="number" id="diaFeriado" placeholder="Dia" min="1" max="31" style="width:60px;">
+                            <button type="button" id="btn-add-feriado" class="btn-small">Add</button>
+                            <button type="button" id="btn-limpar-feriados" class="btn-small btn-danger">Limpar</button>
+                        </div>
+                        <div id="listaFeriados" class="lista-feriados"></div>
                     </div>
                 </div>
 
                 <div class="form-column">
                     <h2 class="form-section-title">Proventos</h2>
-                    <div class="input-group">
-                        <label for="he50">Horas Extra 50%</label>
-                        <input type="text" id="he50" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30" />
-                    </div>
-                    <div class="input-group">
-                        <label for="he60">Horas Extra 60%</label>
-                        <input type="text" id="he60" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30" />
-                    </div>
-                    <div class="input-group">
-                        <label for="he80">Horas Extra 80%</label>
-                        <input type="text" id="he80" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30" />
-                    </div>
-                    <div class="input-group">
-                        <label for="he100">Horas Extra 100%</label>
-                        <input type="text" id="he100" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30" />
-                    </div>
-                    <div class="input-group">
-                        <label for="he150">Horas Extra 150%</label>
-                        <input type="text" id="he150" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30" />
-                    </div>
-                    <div class="input-group">
-                        <label for="noturno">Adicional Noturno (horas)</label>
-                        <input type="text" id="noturno" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30" />
-                    </div>
+                    <div class="input-group"><label>Horas Extra 50%</label><input type="text" id="he50" class="hora-conversivel"></div>
+                    <div class="input-group"><label>Horas Extra 60%</label><input type="text" id="he60" class="hora-conversivel"></div>
+                    <div class="input-group"><label>Horas Extra 80%</label><input type="text" id="he80" class="hora-conversivel"></div>
+                    <div class="input-group"><label>Horas Extra 100%</label><input type="text" id="he100" class="hora-conversivel"></div>
+                    <div class="input-group"><label>Horas Extra 150%</label><input type="text" id="he150" class="hora-conversivel"></div>
+                    <div class="input-group"><label>Adicional Noturno (Horas)</label><input type="text" id="noturno" class="hora-conversivel"></div>
                 </div>
 
                 <div class="form-column">
                     <h2 class="form-section-title">Descontos</h2>
+                    <div class="input-group"><label>Faltas (dias)</label><input type="number" id="faltas"></div>
+                    <div class="input-group"><label>Atrasos (horas)</label><input type="text" id="atrasos" class="hora-conversivel"></div>
                     <div class="input-group">
-                        <label for="faltas">Faltas (dias)</label>
-                        <input type="number" id="faltas" />
+                        <label>Descontar VT (6%)?</label>
+                        <select id="descontar_vt"><option value="nao">Não</option><option value="sim">Sim</option></select>
                     </div>
                     <div class="input-group">
-                        <label for="atrasos">Atrasos (horas)</label>
-                        <input type="text" id="atrasos" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30" />
-                    </div>
-                    <div class="input-group">
-                        <label for="descontar_vt">Descontar Vale-Transporte (6%)?</label>
-                        <select id="descontar_vt">
-                            <option value="nao">Não</option>
-                            <option value="sim">Sim</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="plano">Convênio SESI</label>
+                        <label>Convênio SESI</label>
                         <select id="plano">
                             <option value="nenhum">Nenhum</option>
                             <option value="basico_individual">Básico Individual</option>
@@ -142,16 +118,13 @@
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="sindicato">Mensalidade Sindical</label>
+                        <label>Mensalidade Sindical</label>
                         <select id="sindicato">
                             <option value="nao">Não Associado</option>
                             <option value="sim">Associado</option>
                         </select>
                     </div>
-                    <div class="input-group">
-                        <label for="emprestimo">Empréstimo Consignado (R$)</label>
-                        <input type="number" id="emprestimo" />
-                    </div>
+                    <div class="input-group"><label>Empréstimo (R$)</label><input type="number" id="emprestimo"></div>
                 </div>
             </div>
         </form>
@@ -161,16 +134,14 @@
 
     <div id="result-view" class="hidden">
       <div id="resultado-container"></div>
-      
       <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="button" id="btn-voltar" class="btn-secondary" style="flex:1;">Calcular Novamente</button>
+          <button type="button" id="btn-voltar" class="btn-secondary" style="flex:1;">Voltar</button>
           <button type="button" id="btn-pdf" class="btn-primary" style="flex:1; background-color: #d32f2f;">Baixar PDF</button>
       </div>
     </div>
-
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
