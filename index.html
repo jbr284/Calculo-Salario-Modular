@@ -3,185 +3,263 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Calculadora de Salário Mensal</title>
+  <title>Sistema de Folha - Salário DTC</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
-  <meta name="theme-color" content="#0d47a1">
+  <meta name="theme-color" content="#004ba0">
 </head>
 <body>
-  <div class="container">
-    <h1 class="main-title">Cálculo de Salário Mensal</h1>
+
+  <header class="system-header">
+    <div class="header-left">
+        <div class="branding-area">
+            <span class="material-symbols-outlined logo-icon">corporate_fare</span>
+            <span class="system-name">Salário <strong>DTC</strong></span>
+        </div>
+        <nav class="main-nav">
+            <a href="#" class="active"><span class="material-symbols-outlined">calculate</span> Cálculo Folha</a>
+            <a href="#"><span class="material-symbols-outlined">bar_chart</span> Relatórios</a>
+        </nav>
+    </div>
+    <div class="header-right">
+        <div class="user-profile">
+            <span class="material-symbols-outlined">account_circle</span>
+            <span>Administrador</span>
+        </div>
+    </div>
+  </header>
+
+  <main class="system-content">
     
-    <div id="form-view">
+    <div class="page-header">
+        <h1>Cálculo de Salário Mensal (Modular)</h1>
+        <p>Preencha os dados abaixo para simular a folha de pagamento.</p>
+    </div>
+    
+    <div id="form-view" class="view-container active">
         <form id="formulario">
             <input type="hidden" id="diasUteis" />
             <input type="hidden" id="domFeriados" />
             <input type="hidden" id="feriadosExtras" />
 
-            <div class="layout-grid">
+            <div class="dashboard-grid">
                 
-                <div class="column">
-                    <h2 class="column-title">Dados Iniciais</h2>
-                    
-                    <div class="input-group">
-                        <label for="mesReferencia">Mês de Referência (Obrigatório)</label>
-                        <input type="month" id="mesReferencia" required />
+                <div class="panel-card">
+                    <div class="panel-header header-blue">
+                        <span class="material-symbols-outlined">assignment_ind</span>
+                        <h2>Dados do Colaborador</h2>
                     </div>
-
-                    <div class="input-group">
-                        <label for="salario">Salário Mensal (R$)</label>
-                        <input type="text" id="salario" inputmode="decimal" placeholder="Ex: 3500,00" required />
-                    </div>
-
-                    <div class="input-group">
-                        <label class="label-bold">Situação do Funcionário</label>
-                        <div class="radio-stack">
-                            <label><input type="radio" name="tipoDias" value="completo" checked /> 1. Mês Completo (30 Dias)</label>
-                            <label><input type="radio" name="tipoDias" value="saida_ferias" /> 2. Mês de Férias</label>
-                            <label><input type="radio" name="tipoDias" value="retorno_ferias" /> 3. Mês de Retorno de Férias</label>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="input-group flex-1">
+                                <label for="mesReferencia">Mês de Referência *</label>
+                                <input type="month" id="mesReferencia" required class="form-control" />
+                            </div>
+                            <div class="input-group flex-1">
+                                <label for="salario">Salário Base (R$) *</label>
+                                <input type="text" id="salario" inputmode="decimal" placeholder="0,00" required class="form-control money-input" />
+                            </div>
                         </div>
 
-                        <div id="box-calculo-ferias" class="ferias-box hidden">
-                            <label style="font-size: 0.9em; font-weight:bold; color:#0d47a1;">Dados das Férias:</label>
-                            <div class="ferias-grid">
-                                <div id="col-data">
-                                    <label id="lbl-data-ferias" style="font-size:0.85em;">Dia da saída</label>
-                                    <select id="inicioFerias">
-                                        <option value="">dia do mês</option>
-                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                                        <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
-                                        <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
-                                        <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
-                                        <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
-                                        <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
+                        <div class="input-group mt-4">
+                            <label class="label-bold mb-2">Situação no Mês</label>
+                            <div class="segmented-control">
+                                <label class="segment-btn">
+                                    <input type="radio" name="tipoDias" value="completo" checked />
+                                    <span>Mês Completo</span>
+                                </label>
+                                <label class="segment-btn">
+                                    <input type="radio" name="tipoDias" value="saida_ferias" />
+                                    <span>Saída Férias</span>
+                                </label>
+                                <label class="segment-btn">
+                                    <input type="radio" name="tipoDias" value="retorno_ferias" />
+                                    <span>Retorno Férias</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="box-calculo-ferias" class="info-box hidden mt-3">
+                            <h4 class="box-title"><span class="material-symbols-outlined icon-sm">beach_access</span> Detalhes das Férias</h4>
+                            <div class="form-row">
+                                <div class="input-group flex-1" id="col-data">
+                                    <label id="lbl-data-ferias">Dia do Mês</label>
+                                    <select id="inicioFerias" class="form-control form-select">
+                                        <option value="">Selecione...</option>
+                                        <script>for(let i=1;i<=31;i++) document.write(`<option value="${i}">${i}</option>`);</script>
                                     </select>
                                 </div>
-                                <div id="col-qtd">
-                                    <label style="font-size:0.85em;">Duração</label>
-                                    <input type="number" id="qtdDiasFerias" placeholder="Ex: 30">
+                                <div class="input-group flex-1" id="col-qtd">
+                                    <label>Duração (Dias)</label>
+                                    <input type="number" id="qtdDiasFerias" placeholder="Ex: 30" class="form-control">
                                 </div>
                             </div>
-                            <p id="feedback-ferias" style="font-size: 0.8em; margin-top:5px; font-style:italic; color:#555;"></p>
+                            <p id="feedback-ferias" class="feedback-text"></p>
                         </div>
-                    </div>
 
-                    <div class="input-group">
-                        <label for="diasTrab">Dias de Salário a Pagar</label>
-                        <input type="number" id="diasTrab" readonly class="input-readonly" value="30" />
-                    </div>
-
-                    <div class="input-group">
-                        <label for="dependentes">Dependentes</label>
-                        <input type="number" id="dependentes" />
-                    </div>
-
-                    <div class="input-group">
-                        <label class="label-bold">Feriados Regionais</label>
-                        <div class="feriado-box-container">
-                            <p class="hint-text"><strong>Dica:</strong> Adicione feriados municipais.</p>
-                            <div class="feriado-inputs">
-                                <select id="diaFeriado">
-                                    <option value="">Dia</option>
-                                    <option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
-                                </select>
-                                <button type="button" id="btn-add-feriado" class="btn-gray">Adicionar</button>
-                                <button type="button" id="btn-limpar-feriados" class="btn-red">Limpar</button>
+                        <div class="form-row mt-4">
+                            <div class="input-group flex-1">
+                                <label for="diasTrab">Dias a Pagar</label>
+                                <input type="number" id="diasTrab" readonly class="form-control input-readonly" value="30" />
                             </div>
-                            <div id="listaFeriados" class="tags-container"></div>
+                            <div class="input-group flex-1">
+                                <label for="dependentes">Dependentes IRRF</label>
+                                <input type="number" id="dependentes" class="form-control" placeholder="0" />
+                            </div>
+                        </div>
+
+                        <div class="input-group mt-4">
+                            <label class="label-bold mb-2">Feriados Locais (Não Nacionais)</label>
+                            <div class="feriado-widget">
+                                <div class="feriado-inputs">
+                                    <select id="diaFeriado" class="form-select">
+                                        <option value="">Dia...</option>
+                                        <script>for(let i=1;i<=31;i++) document.write(`<option value="${String(i).padStart(2,'0')}">${i}</option>`);</script>
+                                    </select>
+                                    <button type="button" id="btn-add-feriado" class="btn btn-sm btn-outline-primary">Adicionar</button>
+                                    <button type="button" id="btn-limpar-feriados" class="btn btn-sm btn-outline-danger">Limpar</button>
+                                </div>
+                                <div id="listaFeriados" class="tags-container mt-2"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="column">
-                    <h2 class="column-title">Proventos</h2>
-                    
-                    <div class="input-group">
-                        <label>Horas Extra 50%</label>
-                        <input type="text" id="he50" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30">
+                <div class="panel-card">
+                    <div class="panel-header header-green">
+                        <span class="material-symbols-outlined">trending_up</span>
+                        <h2>Proventos & Adicionais</h2>
                     </div>
-                    <div class="input-group">
-                        <label>Horas Extra 60%</label>
-                        <input type="text" id="he60" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30">
-                    </div>
-                    <div class="input-group">
-                        <label>Horas Extra 80%</label>
-                        <input type="text" id="he80" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30">
-                    </div>
-                    <div class="input-group">
-                        <label>Horas Extra 100%</label>
-                        <input type="text" id="he100" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30">
-                    </div>
-                    <div class="input-group">
-                        <label>Horas Extra 150%</label>
-                        <input type="text" id="he150" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30">
-                    </div>
-                    <div class="input-group">
-                        <label>Adicional Noturno (horas)</label>
-                        <input type="text" id="noturno" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30">
-                    </div>
-                </div>
-
-                <div class="column">
-                    <h2 class="column-title">Descontos</h2>
-                    
-                    <div class="input-group">
-                        <label>Faltas (dias)</label>
-                        <input type="text" id="faltas" inputmode="decimal">
-                    </div>
-                    <div class="input-group">
-                        <label>Atrasos (horas)</label>
-                        <input type="text" id="atrasos" class="hora-conversivel" placeholder="Ex: 5.5 ou 5:30">
-                    </div>
-                    <div class="input-group">
-                        <label>Descontar Vale-Transporte (6%)?</label>
-                        <select id="descontar_vt">
-                            <option value="nao">Não</option>
-                            <option value="sim">Sim</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Convênio SESI</label>
-                        <select id="plano">
-                            <option value="nenhum">Nenhum</option>
-                            <option value="basico_individual">Básico Individual</option>
-                            <option value="basico_familiar">Básico Familiar</option>
-                            <option value="plus_individual">Plus Individual</option>
-                            <option value="plus_familiar">Plus Familiar</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Mensalidade Sindical</label>
-                        <select id="sindicato">
-                            <option value="nao">Não Associado</option>
-                            <option value="sim">Associado</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Empréstimo Consignado (R$)</label>
-                        <input type="text" id="emprestimo" inputmode="decimal" />
+                    <div class="panel-body">
+                        <p class="helper-text mb-3">Informe as horas em decimal (ex: 1.5) ou formato hora (ex: 1:30).</p>
+                        
+                        <div class="hours-grid">
+                            <div class="input-group">
+                                <label>H.E. 50%</label>
+                                <input type="text" id="he50" class="form-control hora-conversivel" placeholder="00:00">
+                            </div>
+                            <div class="input-group">
+                                <label>H.E. 60%</label>
+                                <input type="text" id="he60" class="form-control hora-conversivel" placeholder="00:00">
+                            </div>
+                            <div class="input-group">
+                                <label>H.E. 80%</label>
+                                <input type="text" id="he80" class="form-control hora-conversivel" placeholder="00:00">
+                            </div>
+                            <div class="input-group">
+                                <label>H.E. 100%</label>
+                                <input type="text" id="he100" class="form-control hora-conversivel" placeholder="00:00">
+                            </div>
+                            <div class="input-group">
+                                <label>H.E. 150%</label>
+                                <input type="text" id="he150" class="form-control hora-conversivel" placeholder="00:00">
+                            </div>
+                            <div class="input-group highlight-input">
+                                <label>Adic. Noturno (Hs)</label>
+                                <input type="text" id="noturno" class="form-control hora-conversivel" placeholder="00:00">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-            </div>
-        </form>
+                <div class="panel-card">
+                    <div class="panel-header header-red">
+                        <span class="material-symbols-outlined">trending_down</span>
+                        <h2>Descontos & Convênios</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="input-group flex-1">
+                                <label>Faltas (Dias)</label>
+                                <input type="text" id="faltas" inputmode="decimal" class="form-control">
+                            </div>
+                            <div class="input-group flex-1">
+                                <label>Atrasos (Hs)</label>
+                                <input type="text" id="atrasos" class="form-control hora-conversivel" placeholder="00:00">
+                            </div>
+                        </div>
+
+                        <div class="divider my-4"></div>
+
+                        <div class="input-group mb-3">
+                            <label>Descontar Vale-Transporte (6%)?</label>
+                            <select id="descontar_vt" class="form-control form-select">
+                                <option value="nao">Não</option>
+                                <option value="sim">Sim</option>
+                            </select>
+                        </div>
+                        <div class="input-group mb-3">
+                            <label>Plano de Saúde (SESI)</label>
+                            <select id="plano" class="form-control form-select">
+                                <option value="nenhum">Não optante</option>
+                                <option value="basico_individual">Básico Individual</option>
+                                <option value="basico_familiar">Básico Familiar</option>
+                                <option value="plus_individual">Plus Individual</option>
+                                <option value="plus_familiar">Plus Familiar</option>
+                            </select>
+                        </div>
+                        <div class="input-group mb-3">
+                            <label>Contribuição Sindical</label>
+                            <select id="sindicato" class="form-control form-select">
+                                <option value="nao">Não Associado</option>
+                                <option value="sim">Associado</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Empréstimo Consignado (R$)</label>
+                            <input type="text" id="emprestimo" inputmode="decimal" class="form-control money-input" placeholder="0,00" />
+                        </div>
+                    </div>
+                </div>
+
+            </div> </form>
         
-        <div class="actions-footer">
-            <button type="button" id="btn-calcular" class="btn-primary">Calcular</button>
-            <button type="button" id="btn-salvar" class="btn-secondary">Salvar Dados</button>
+        <div class="actions-bar-sticky">
+            <button type="button" id="btn-salvar" class="btn btn-outline-primary btn-lg">
+                <span class="material-symbols-outlined">save</span> Salvar Parâmetros
+            </button>
+            <button type="button" id="btn-calcular" class="btn btn-primary btn-lg">
+                <span class="material-symbols-outlined">calculate</span> Calcular Folha
+            </button>
         </div>
     </div>
 
-    <div id="result-view" class="hidden">
-      <div id="resultado-container"></div>
-      <div class="actions-footer">
-          <button type="button" id="btn-voltar" class="btn-secondary">Calcular Novamente</button>
-          <button type="button" id="btn-pdf" class="btn-primary" style="background-color: #d32f2f;">Baixar PDF</button>
+    <div id="result-view" class="view-container hidden">
+      <div class="report-card">
+          <div class="report-header">
+              <h2>Demonstrativo de Pagamento</h2>
+              <span class="report-date">Referência: <span id="ref-display"></span></span>
+          </div>
+          <div id="resultado-container" class="report-body"></div>
+      </div>
+      <div class="actions-footer mt-4">
+          <button type="button" id="btn-voltar" class="btn btn-secondary btn-lg">
+            <span class="material-symbols-outlined">arrow_back</span> Voltar e Editar
+          </button>
+          <button type="button" id="btn-pdf" class="btn btn-danger btn-lg">
+            <span class="material-symbols-outlined">picture_as_pdf</span> Gerar PDF
+          </button>
       </div>
     </div>
-  </div>
+
+  </main>
+
+  <footer class="system-footer">
+      <p>© 2026 Salário DTC Sistemas. Todos os direitos reservados.</p>
+  </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="app.js"></script>
+  <script>
+      document.getElementById('btn-calcular').addEventListener('click', () => {
+         const mesRef = document.getElementById('mesReferencia').value;
+         if(mesRef) {
+             const [ano, mes] = mesRef.split('-');
+             document.getElementById('ref-display').textContent = `${mes}/${ano}`;
+         }
+      });
+  </script>
 </body>
 </html>
