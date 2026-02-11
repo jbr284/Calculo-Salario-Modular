@@ -1,4 +1,4 @@
-// app.js - VERSÃO FINAL (LEI 15.270/2025 - IRRF CORRIGIDO)
+// app.js - VERSÃO FINAL (CORREÇÃO LEI 15.270: ISENÇÃO PELO BRUTO)
 
 const regras = {
     "anoVigencia": 2026,
@@ -10,8 +10,6 @@ const regras = {
     "percentualVT": 0.06,
     "valorSindicato": 47.5,
     "deducaoPorDependenteIRRF": 189.59,
-    // Novo Desconto Simplificado da Lei 15.270
-    "descontoSimplificadoIRRF": 607.20,
     
     "tabelaINSS": [
       { "ate": 1518.00, "aliquota": 0.075, "deduzir": 0 },
@@ -19,7 +17,6 @@ const regras = {
       { "ate": 4190.83, "aliquota": 0.12, "deduzir": 106.59 },
       { "ate": 8157.41, "aliquota": 0.14, "deduzir": 190.41 }
     ],
-    // Tabela Base (ainda usada para o cálculo bruto antes do redutor)
     "tabelaIRRF": [
       { "ate": 2259.20, "aliquota": 0, "deduzir": 0 },
       { "ate": 2826.65, "aliquota": 0.075, "deduzir": 169.44 },
@@ -46,41 +43,18 @@ function calcularINSS(base, regras) {
     return (base * ultima.aliquota) - ultima.deduzir;
 }
 
-function calcularIRRF(baseCalculo, dependentes, regras) {
-    // 1. Definição da Base: Compara Deduções Legais vs Simplificado (Lei 15.270 - R$ 607,20)
-    // O sistema deve usar o mais vantajoso para o contribuinte
-    // Nota: 'baseCalculo' recebida aqui já é (Bruto - INSS). Precisamos abater o resto.
+// CORREÇÃO: Recebe agora 'rendimentosTributaveis' (Bruto) para checar a isenção
+function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) {
     
-    const deducoesLegais = dependentes * regras.deducaoPorDependenteIRRF;
-    // Se o desconto simplificado for maior que as deduções legais, usamos ele para reduzir a base
-    // Caso contrário, usamos as deduções legais.
-    // Pela nova regra, o simplificado substitui todas as deduções.
-    
-    // Vamos calcular as duas bases possíveis:
-    const baseLegal = baseCalculo - deducoesLegais;
-    
-    // O simplificado substitui a dedução legal (dependentes + inss? Não, substitui a dedução da base).
-    // Geralmente a regra é: Base = Bruto - Simplificado. 
-    // Mas aqui 'baseCalculo' já veio sem INSS. 
-    // Ajuste: A lei define o simplificado como substituto das deduções.
-    // Vamos assumir a lógica padrão: BaseSimplificada = (Bruto - INSS) - (Simplificado - INSS)? 
-    // Não, o simplificado de 607,20 substitui as deduções totais (INSS + Dep).
-    // Se (INSS + Dep) < 607.20, usa 607.20 direto do Bruto.
-    // Mas para manter compatibilidade com a função que já recebe (Bruto - INSS), vamos aplicar a lógica mais comum de sistemas:
-    // BaseFinal = BaseComINSS - Max(DeducoesLegais, 607.20 - INSS??) -> Essa parte é complexa na lei nova.
-    // SIMPLIFICAÇÃO SEGURA: A maioria dos sistemas aplica o desconto simplificado direto na base bruta se for vantajoso.
-    // Aqui aplicaremos o redutor da Lei 15.270 sobre a base legal, pois o redutor é o mais forte.
-    
-    // Vamos seguir com a base legal (padrão) e aplicar o Redutor da Lei 15.270 que é o "pulo do gato".
-    const baseFinal = Math.max(0, baseLegal);
+    // REGRA 1: A isenção é baseada nos RENDIMENTOS TRIBUTÁVEIS (Bruto), não na base.
+    // Se ganhou até 5.000 bruto, é isento direto.
+    if (rendimentosTributaveis <= 5000) return 0;
 
-    // --- NOVA REGRA LEI 15.270/2025 ---
-    
-    // 1. Isenção efetiva até R$ 5.000,00 de base? 
-    // A lei isenta quem ganha até 5k. Se a base for < 5000, zera.
-    if (baseFinal <= 5000) return 0;
+    // REGRA 2: Se passou de 5.000, calcula normal sobre a BASE (Bruto - INSS - Dependentes)
+    const deducoesDependentes = dependentes * regras.deducaoPorDependenteIRRF;
+    const baseFinal = Math.max(0, baseCalculo - deducoesDependentes);
 
-    // 2. Cálculo do Imposto "Padrão" (pela tabela progressiva)
+    // Encontra o imposto padrão na tabela
     let impostoBruto = 0;
     for (const faixa of regras.tabelaIRRF) {
         if (faixa.ate === "acima" || baseFinal <= faixa.ate) {
@@ -88,11 +62,13 @@ function calcularIRRF(baseCalculo, dependentes, regras) {
             break;
         }
     }
-    
-    // 3. Aplicação do Redutor (Lei 15.270) para faixa R$ 5.000 - R$ 7.350
-    // Fórmula: Redutor = 978,62 - (0,133145 * Base)
-    if (baseFinal > 5000 && baseFinal <= 7350) {
+
+    // REGRA 3: Aplica o Redutor (Fator de Redução) para suavizar a entrada na tributação
+    // Fórmula do redutor aplicada sobre a Base Final
+    if (rendimentosTributaveis > 5000 && rendimentosTributaveis <= 7500) {
+        // Redutor matemático da Lei (aproximado para o exemplo)
         const redutor = 978.62 - (0.133145 * baseFinal);
+        
         if (redutor > 0) {
             impostoBruto -= redutor;
         }
@@ -122,6 +98,7 @@ function calcularSalarioCompleto(inputs, regras) {
     const dsrHE = (diasUteis > 0) ? (totalHE / diasUteis) * domFeriados : 0;
     const dsrNoturno = (diasUteis > 0) ? (valorNoturno / diasUteis) * domFeriados : 0;
     
+    // TOTAL BRUTO (Rendimentos Tributáveis)
     const totalBruto = vencBase + totalHE + valorNoturno + dsrHE + dsrNoturno;
 
     // Descontos
@@ -135,12 +112,11 @@ function calcularSalarioCompleto(inputs, regras) {
     // INSS
     const inss = calcularINSS(totalBruto, regras);
     
-    // IRRF (Base = Bruto - INSS - Faltas/Atrasos também abatem a base normalmente, mas aqui simplificamos Bruto-INSS)
-    // Ajuste técnico: Faltas e Atrasos reduzem a base do IRRF.
+    // Base IRRF (Bruto - INSS - Faltas/Atrasos)
     const baseIRRF = totalBruto - inss - descontoFaltas - descontoAtrasos;
     
-    // Chama cálculo novo com Lei 15.270
-    const irrf = calcularIRRF(baseIRRF, dependentes, regras);
+    // IRRF: Passamos agora o 'totalBruto' para validar a regra de isenção <= 5000
+    const irrf = calcularIRRF(baseIRRF, dependentes, regras, totalBruto);
     
     const descontoPlano = regras.planosSESI[plano] || 0;
     const descontoSindicato = sindicato === 'sim' ? regras.valorSindicato : 0;
@@ -163,14 +139,14 @@ function calcularSalarioCompleto(inputs, regras) {
     };
 }
 
-// --- INTERFACE (MANTIDA IGUAL, SÓ CORRIGINDO FUNÇÕES AUXILIARES SE NECESSÁRIO) ---
+// --- INTERFACE ---
 document.addEventListener('DOMContentLoaded', () => {
     const formView = document.getElementById('form-view');
     const resultView = document.getElementById('result-view');
     const resultContainer = document.getElementById('resultado-container');
     const mesReferenciaInput = document.getElementById('mesReferencia');
     
-    // Auto-seleção do mês atual (UX)
+    // UX: Seleciona mês atual se vazio
     if (!mesReferenciaInput.value) {
         const hoje = new Date();
         const ano = hoje.getFullYear();
@@ -202,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderizarResultados(resultado) {
         const { proventos, descontos, liquido, fgts } = resultado;
         const liquidoMensal = liquido + descontos.adiantamento;
+        
         const row = (label, val, forcar = false) => {
             if (val > 0.01 || forcar) {
                 return `<tr><td>${label}</td><td class="valor">${formatarMoeda(val)}</td></tr>`;
@@ -223,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${row('Adicional Noturno (35%)', proventos.valorNoturno)}
                     ${row('DSR sobre Horas Extras', proventos.dsrHE, proventos.temHE)}
                     ${row('DSR sobre Adic. Noturno', proventos.dsrNoturno, proventos.temNoturno)}
-                    <tr class="summary-row"><td>Total Bruto</td><td class="valor">${formatarMoeda(proventos.totalBruto)}</td></tr>
+                    <tr class="summary-row"><td>Total Bruto (Tributável)</td><td class="valor">${formatarMoeda(proventos.totalBruto)}</td></tr>
                     
                     <tr class="section-header"><td colspan="2">Descontos</td></tr>
                     ${row('INSS', descontos.inss)}
@@ -248,8 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarResultados();
     }
 
-    // (O resto do código de Férias e Event Listeners permanece igual ao anterior)
-    // ...
+    // --- LÓGICA DE FÉRIAS E FERIADOS MANTIDA ---
     function alternarModoDias() {
         const opcaoSelecionada = document.querySelector('input[name="tipoDias"]:checked');
         if(!opcaoSelecionada) return;
@@ -287,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!diaSelecionado) { diasTrabInput.value = 0; return; }
 
         const [anoRef, mesRef] = mesRefStr.split('-').map(Number);
-        const inicioMes = new Date(anoRef, mesRef - 1, 1);
         const fimMes = new Date(anoRef, mesRef, 0); 
         const diaValidado = Math.min(diaSelecionado, fimMes.getDate());
         let diasTrabalhados = 0;
@@ -300,16 +275,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const dataFimFerias = new Date(dataInicioFerias);
             dataFimFerias.setDate(dataFimFerias.getDate() + duracao - 1);
             
-            const inicioIntersecao = new Date(Math.max(inicioMes, dataInicioFerias));
-            const fimIntersecao = new Date(Math.min(fimMes, dataFimFerias));
-            let diasFeriasNoMes = 0;
-            if (inicioIntersecao <= fimIntersecao) {
-                const diffTempo = fimIntersecao - inicioIntersecao;
-                diasFeriasNoMes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24)) + 1;
-            }
             let texto = (dataFimFerias <= fimMes) ? "Sanduíche (Retornou)" : "Saída (Não retornou)";
-            if (dataFimFerias <= fimMes) diasTrabalhados = 30 - diasFeriasNoMes;
-            else diasTrabalhados = diaValidado - 1;
+            const inicioMes = new Date(anoRef, mesRef - 1, 1);
+            
+            // Lógica de dias trabalhados
+            let diasAntes = Math.max(0, (dataInicioFerias - inicioMes) / (1000 * 60 * 60 * 24));
+            let diasDepois = 0;
+            if (dataFimFerias < fimMes) {
+                diasDepois = (fimMes - dataFimFerias) / (1000 * 60 * 60 * 24);
+            }
+            
+            // Ajuste simplificado baseado no pedido anterior (usar lógica de dias diretos ou 30-ferias)
+            // Se for sanduiche: 30 - diasFerias. Se for Saída: diaSaida - 1.
+            if (dataFimFerias <= fimMes) {
+                // Férias inteiras no mês
+                const diasFeriasNoMes = Math.ceil((dataFimFerias - dataInicioFerias)/(1000*60*60*24)) + 1;
+                diasTrabalhados = 30 - diasFeriasNoMes;
+            } else {
+                diasTrabalhados = diaValidado - 1;
+            }
 
             diasTrabalhados = Math.max(0, Math.min(30, diasTrabalhados));
             const fmt = d => d.toLocaleDateString('pt-BR');
@@ -364,11 +348,10 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarResultados(resultado);
     }
 
-    // Ferramentas auxiliares (Adicionar feriado, etc)
     function adicionarFeriado() {
         const dia = document.getElementById('diaFeriado').value;
         const mesAno = document.getElementById('mesReferencia').value;
-        if (!dia || !mesAno) { alert("Selecione um Mês de Referência e um Dia primeiro."); return; }
+        if (!dia || !mesAno) { alert("Selecione um Mês e um Dia."); return; }
         const [ano, mes] = mesAno.split('-');
         const data = `${dia}/${mes}/${ano}`;
         const campo = document.getElementById('feriadosExtras');
@@ -408,10 +391,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const extras = document.getElementById('feriadosExtras').value;
         const qtdExtras = extras ? extras.split(',').length : 0;
-        const totalDiasUteis = Math.max(0, diasUteis - qtdExtras - feriadosNacionais);
-        const totalDescansos = domingos + qtdExtras + feriadosNacionais;
-        document.getElementById('diasUteis').value = totalDiasUteis;
-        document.getElementById('domFeriados').value = totalDescansos;
+        document.getElementById('diasUteis').value = Math.max(0, diasUteis - qtdExtras - feriadosNacionais);
+        document.getElementById('domFeriados').value = domingos + qtdExtras + feriadosNacionais;
+        
         if(document.querySelector('input[name="tipoDias"]:checked')?.value !== 'completo') {
             calcularDiasProporcionaisFerias();
         } else {
@@ -463,5 +445,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     restaurarDadosFixos();
     alternarModoDias();
-    preencherDiasMes(); // Força o preenchimento se o mês já estiver setado
+    preencherDiasMes(); 
 });
