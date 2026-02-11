@@ -1,4 +1,4 @@
-// app.js - VERSÃO FINAL (CORREÇÃO LEI 15.270: ISENÇÃO PELO BRUTO)
+// app.js - VERSÃO FINAL (CORREÇÃO LEI 15.270: REDUTOR PELO BRUTO)
 
 const regras = {
     "anoVigencia": 2026,
@@ -43,18 +43,16 @@ function calcularINSS(base, regras) {
     return (base * ultima.aliquota) - ultima.deduzir;
 }
 
-// CORREÇÃO: Recebe agora 'rendimentosTributaveis' (Bruto) para checar a isenção
+// CORREÇÃO: Recebe 'rendimentosTributaveis' (Bruto) para cálculo do Redutor
 function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) {
     
-    // REGRA 1: A isenção é baseada nos RENDIMENTOS TRIBUTÁVEIS (Bruto), não na base.
-    // Se ganhou até 5.000 bruto, é isento direto.
+    // 1. Isenção direta pelo Bruto <= 5000
     if (rendimentosTributaveis <= 5000) return 0;
 
-    // REGRA 2: Se passou de 5.000, calcula normal sobre a BASE (Bruto - INSS - Dependentes)
+    // 2. Cálculo do Imposto Padrão sobre a BASE (Bruto - INSS - Dependentes)
     const deducoesDependentes = dependentes * regras.deducaoPorDependenteIRRF;
     const baseFinal = Math.max(0, baseCalculo - deducoesDependentes);
 
-    // Encontra o imposto padrão na tabela
     let impostoBruto = 0;
     for (const faixa of regras.tabelaIRRF) {
         if (faixa.ate === "acima" || baseFinal <= faixa.ate) {
@@ -63,11 +61,10 @@ function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) 
         }
     }
 
-    // REGRA 3: Aplica o Redutor (Fator de Redução) para suavizar a entrada na tributação
-    // Fórmula do redutor aplicada sobre a Base Final
+    // 3. Aplicação do Redutor (Lei 15.270)
+    // FÓRMULA CORRIGIDA: Redutor incide sobre RENDIMENTOS TRIBUTÁVEIS (BRUTO), não sobre a Base.
     if (rendimentosTributaveis > 5000 && rendimentosTributaveis <= 7500) {
-        // Redutor matemático da Lei (aproximado para o exemplo)
-        const redutor = 978.62 - (0.133145 * baseFinal);
+        const redutor = 978.62 - (0.133145 * rendimentosTributaveis);
         
         if (redutor > 0) {
             impostoBruto -= redutor;
@@ -115,7 +112,7 @@ function calcularSalarioCompleto(inputs, regras) {
     // Base IRRF (Bruto - INSS - Faltas/Atrasos)
     const baseIRRF = totalBruto - inss - descontoFaltas - descontoAtrasos;
     
-    // IRRF: Passamos agora o 'totalBruto' para validar a regra de isenção <= 5000
+    // IRRF
     const irrf = calcularIRRF(baseIRRF, dependentes, regras, totalBruto);
     
     const descontoPlano = regras.planosSESI[plano] || 0;
@@ -225,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarResultados();
     }
 
-    // --- LÓGICA DE FÉRIAS E FERIADOS MANTIDA ---
+    // --- MANTER LÓGICA DE FERIAS E OUTROS ---
     function alternarModoDias() {
         const opcaoSelecionada = document.querySelector('input[name="tipoDias"]:checked');
         if(!opcaoSelecionada) return;
@@ -275,18 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dataFimFerias = new Date(dataInicioFerias);
             dataFimFerias.setDate(dataFimFerias.getDate() + duracao - 1);
             
-            let texto = (dataFimFerias <= fimMes) ? "Sanduíche (Retornou)" : "Saída (Não retornou)";
-            const inicioMes = new Date(anoRef, mesRef - 1, 1);
-            
-            // Lógica de dias trabalhados
-            let diasAntes = Math.max(0, (dataInicioFerias - inicioMes) / (1000 * 60 * 60 * 24));
-            let diasDepois = 0;
-            if (dataFimFerias < fimMes) {
-                diasDepois = (fimMes - dataFimFerias) / (1000 * 60 * 60 * 24);
-            }
-            
-            // Ajuste simplificado baseado no pedido anterior (usar lógica de dias diretos ou 30-ferias)
-            // Se for sanduiche: 30 - diasFerias. Se for Saída: diaSaida - 1.
+            const texto = (dataFimFerias <= fimMes) ? "Sanduíche (Retornou)" : "Saída (Não retornou)";
             if (dataFimFerias <= fimMes) {
                 // Férias inteiras no mês
                 const diasFeriasNoMes = Math.ceil((dataFimFerias - dataInicioFerias)/(1000*60*60*24)) + 1;
