@@ -404,4 +404,20 @@ document.addEventListener('DOMContentLoaded', () => {
     restaurarDadosFixos();
     alternarModoDias();
     preencherDiasMes();
+    // ... (restante do código acima)
+
+    // AUTO-SELEÇÃO DO MÊS ATUAL (Melhoria de UX)
+    // Se o campo estiver vazio, preenche com o mês corrente
+    if (!mesReferenciaInput.value) {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        mesReferenciaInput.value = `${ano}-${mes}`;
+        
+        // Força a atualização dos dias úteis/feriados
+        preencherDiasMes(); 
+    }
+
+    // ... (restante do código, chamadas de funções iniciais)
+});
 });
