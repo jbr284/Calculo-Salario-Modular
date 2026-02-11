@@ -1,4 +1,4 @@
-// app.js - VERSÃO CORRIGIDA (Separação Dinheiro vs Horas)
+// app.js - VERSÃO CORRIGIDA
 
 const regras = {
     "anoVigencia": 2026,
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inicioFeriasInput = document.getElementById('inicioFerias'); 
     const qtdDiasFeriasInput = document.getElementById('qtdDiasFerias');
     const feedbackFerias = document.getElementById('feedback-ferias');
-    const colQtd = document.getElementById('col-qtd');
+    const colQtd = document.getElementById('col-qtd'); // AGORA ESTE ID EXISTE NO HTML!
     const lblData = document.getElementById('lbl-data-ferias');
 
     function mostrarResultados() {
@@ -261,34 +261,29 @@ document.addEventListener('DOMContentLoaded', () => {
         diasTrabInput.value = diasTrabalhados;
     }
 
-    // --- LEITURA CORRETA DOS CAMPOS (AQUI ESTAVA O ERRO) ---
+    // --- LEITURA CORRETA DOS CAMPOS ---
     function handleCalcular() {
-        // Função para Dinheiro (R$ 1.500,00 -> 1500.00)
         const getMoney = (id) => { 
             const el = document.getElementById(id); 
             if(!el) return 0;
-            // Remove pontos de milhar e troca vírgula por ponto
             let valStr = el.value.replace(/\./g, '').replace(',', '.');
             const v = parseFloat(valStr); 
             return isNaN(v) ? 0 : v; 
         };
 
-        // Função para Números Simples/Horas (5,5 -> 5.5 / 5.5 -> 5.5)
-        // ATENÇÃO: NÃO removemos pontos aqui, pois 5.5 não é 55
         const getNumber = (id) => { 
             const el = document.getElementById(id); 
             if(!el) return 0;
-            // Apenas troca vírgula por ponto. Mantém pontos existentes.
             let valStr = el.value.replace(',', '.');
             const v = parseFloat(valStr); 
             return isNaN(v) ? 0 : v; 
         };
 
         const inputs = {
-            salario: getMoney('salario'), // Salário é Dinheiro
-            emprestimo: getMoney('emprestimo'), // Empréstimo é Dinheiro
+            salario: getMoney('salario'), 
+            emprestimo: getMoney('emprestimo'), 
             
-            diasTrab: getNumber('diasTrab'), // O resto é Número/Hora
+            diasTrab: getNumber('diasTrab'), 
             dependentes: getNumber('dependentes'),
             faltas: getNumber('faltas'),
             atrasos: getNumber('atrasos'),
@@ -399,13 +394,9 @@ document.addEventListener('DOMContentLoaded', () => {
     qtdDiasFeriasInput.addEventListener('input', calcularDiasProporcionaisFerias);
     document.querySelectorAll('input[name="tipoDias"]').forEach(radio => radio.addEventListener('change', alternarModoDias));
     
-    // Auto-formatação de Horas (ex: 5:30 -> 5.50)
     document.querySelectorAll('.hora-conversivel').forEach(c => { 
         c.addEventListener('blur', function() { 
             let v = this.value.replace(',', '.').replace(':', '.'); 
-            if(v.includes(':')) { // Caso ainda tenha sobrado algo estranho, ou conversão direta
-               // Tratado acima, mas garantindo parse
-            }
             if(v) this.value = parseFloat(v).toFixed(2); 
         }); 
     });
