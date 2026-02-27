@@ -1,4 +1,4 @@
-// app.js - SISTEMA DE FOLHA MODULAR DATA CENTERS (Regras 2026 + Lei 15.270 + Conversão de Horas)
+// app.js - SISTEMA DE FOLHA MODULAR DATA CENTERS (Ajuste de Base e Contrib. Assistencial)
 
 const regras = {
     "anoVigencia": 2026,
@@ -43,13 +43,9 @@ function calcularINSS(base, regras) {
     return (base * ultima.aliquota) - ultima.deduzir;
 }
 
-// CORREÇÃO: Lei 15.270 - Fator de Redução sobre os Rendimentos Tributáveis (Bruto)
 function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) {
-    
-    // 1. Isenção direta pelo Bruto (Rendimentos Tributáveis) <= 5000
     if (rendimentosTributaveis <= 5000) return 0;
 
-    // 2. Cálculo do Imposto Padrão sobre a BASE LÍQUIDA (Bruto - INSS - Dependentes)
     const deducoesDependentes = dependentes * regras.deducaoPorDependenteIRRF;
     const baseFinal = Math.max(0, baseCalculo - deducoesDependentes);
 
@@ -61,11 +57,8 @@ function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) 
         }
     }
 
-    // 3. Aplicação do Redutor (Lei 15.270)
-    // FÓRMULA: Redutor incide sobre RENDIMENTOS TRIBUTÁVEIS (BRUTO)
     if (rendimentosTributaveis > 5000 && rendimentosTributaveis <= 7500) {
         const redutor = 978.62 - (0.133145 * rendimentosTributaveis);
-        
         if (redutor > 0) {
             impostoBruto -= redutor;
         }
@@ -75,7 +68,7 @@ function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) 
 }
 
 function calcularSalarioCompleto(inputs, regras) {
-    const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
+    const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, assistencial, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
     
     const diasEfetivos = (!diasTrab || diasTrab === 0) ? 30 : diasTrab;
     const valorDia = salario / 30;
@@ -98,7 +91,7 @@ function calcularSalarioCompleto(inputs, regras) {
     // TOTAL BRUTO (Rendimentos Tributáveis)
     const totalBruto = vencBase + totalHE + valorNoturno + dsrHE + dsrNoturno;
 
-    // Descontos
+    // Descontos básicos
     const fgts = totalBruto * 0.08;
     const descontoFaltas = faltas * valorDia;
     const descontoAtrasos = atrasos * valorHora;
@@ -106,19 +99,19 @@ function calcularSalarioCompleto(inputs, regras) {
     const descontoVA = regras.descontoFixoVA;
     const descontoVT = descontarVT ? (salario * regras.percentualVT) : 0;
     
-    // INSS
-    const inss = calcularINSS(totalBruto, regras);
+    // NOVO: Abatimento de Faltas e Atrasos na Base do INSS
+    const baseINSS = totalBruto - descontoFaltas - descontoAtrasos;
+    const inss = calcularINSS(baseINSS, regras);
     
-    // Base IRRF (Bruto - INSS - Faltas/Atrasos)
-    const baseIRRF = totalBruto - inss - descontoFaltas - descontoAtrasos;
-    
-    // IRRF
+    // Base IRRF (Líquida do INSS já sobre a base abatida)
+    const baseIRRF = baseINSS - inss;
     const irrf = calcularIRRF(baseIRRF, dependentes, regras, totalBruto);
     
     const descontoPlano = regras.planosSESI[plano] || 0;
     const descontoSindicato = sindicato === 'sim' ? regras.valorSindicato : 0;
     
-    const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
+    // Soma total dos descontos (incluindo a nova contribuição)
+    const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + assistencial + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
     const liquido = totalBruto - totalDescontos;
 
     return {
@@ -130,7 +123,7 @@ function calcularSalarioCompleto(inputs, regras) {
             temNoturno: valorNoturno > 0
         },
         descontos: { 
-            descontoFaltas, descontoAtrasos, descontoPlano, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos 
+            descontoFaltas, descontoAtrasos, descontoPlano, assistencial, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos 
         },
         fgts, liquido
     };
@@ -143,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultContainer = document.getElementById('resultado-container');
     const mesReferenciaInput = document.getElementById('mesReferencia');
     
-    // UX: Seleciona mês atual automaticamente
     if (!mesReferenciaInput.value) {
         const hoje = new Date();
         const ano = hoje.getFullYear();
@@ -208,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${row('Vale Transporte (6%)', descontos.descontoVT)}
                     ${row('Vale Alimentação (Fixo)', descontos.descontoVA)}
                     ${row('Convênio SESI', descontos.descontoPlano)}
+                    ${row('Contribuição Assistencial', descontos.assistencial)}
                     ${row('Mensalidade Sindical', descontos.descontoSindicato)}
                     ${row('Empréstimo Consignado', descontos.emprestimo)}
                     <tr class="summary-row"><td>Total Descontos</td><td class="valor">${formatarMoeda(descontos.totalDescontos)}</td></tr>
@@ -295,7 +288,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleCalcular() {
-        // Função para Dinheiro
         const getMoney = (id) => { 
             const el = document.getElementById(id); 
             if(!el) return 0;
@@ -303,7 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const v = parseFloat(valStr); 
             return isNaN(v) ? 0 : v; 
         };
-        // Função para Números Decimais
         const getNumber = (id) => { 
             const el = document.getElementById(id); 
             if(!el) return 0;
@@ -315,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputs = {
             salario: getMoney('salario'), 
             emprestimo: getMoney('emprestimo'), 
+            assistencial: getMoney('assistencial'), // Capturando a Contribuição Assistencial
             diasTrab: getNumber('diasTrab'), 
             dependentes: getNumber('dependentes'),
             faltas: getNumber('faltas'),
