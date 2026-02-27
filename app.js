@@ -57,7 +57,7 @@ function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) 
         }
     }
 
-    if (rendimentosTributaveis > 5000 && rendimentosTributaveis <= 7500) {
+    if (rendimentosTributaveis > 5000 && rendimentosTributaveis <= 7350) {
         const redutor = 978.62 - (0.133145 * rendimentosTributaveis);
         if (redutor > 0) {
             impostoBruto -= redutor;
@@ -447,3 +447,4 @@ document.addEventListener('DOMContentLoaded', () => {
     preencherDiasMes(); 
 
 });
+
