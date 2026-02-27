@@ -192,7 +192,12 @@
                         </div>
                         
                         <div class="input-group mb-3">
-                            <label>Sindicato</label>
+                            <label>Contrib. Assistencial (R$)</label>
+                            <input type="text" id="assistencial" inputmode="decimal" class="form-control money-input" placeholder="0,00" />
+                        </div>
+
+                        <div class="input-group mb-3">
+                            <label>Mensalidade Sindical</label>
                             <select id="sindicato" class="form-control form-select">
                                 <option value="nao">Não Associado</option>
                                 <option value="sim">Associado</option>
@@ -201,7 +206,7 @@
                         
                         <div class="input-group">
                             <label>Empréstimo (R$)</label>
-                            <input type="text" id="emprestimo" inputmode="decimal" class="form-control money-input" />
+                            <input type="text" id="emprestimo" inputmode="decimal" class="form-control money-input" placeholder="0,00" />
                         </div>
                     </div>
                 </div>
@@ -247,7 +252,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="app.js"></script>
   <script>
-      // Sincroniza o switch com o input hidden do VT para manter compatibilidade com app.js
       document.getElementById('chk_vt').addEventListener('change', function() {
           document.getElementById('descontar_vt').value = this.checked ? 'sim' : 'nao';
       });
