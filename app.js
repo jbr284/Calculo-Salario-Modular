@@ -1,4 +1,4 @@
-// app.js - VERSÃO FINAL (CORREÇÃO LEI 15.270: REDUTOR PELO BRUTO)
+// app.js - SISTEMA DE FOLHA MODULAR DATA CENTERS (Regras 2026 + Lei 15.270 + Conversão de Horas)
 
 const regras = {
     "anoVigencia": 2026,
@@ -43,13 +43,13 @@ function calcularINSS(base, regras) {
     return (base * ultima.aliquota) - ultima.deduzir;
 }
 
-// CORREÇÃO: Recebe 'rendimentosTributaveis' (Bruto) para cálculo do Redutor
+// CORREÇÃO: Lei 15.270 - Fator de Redução sobre os Rendimentos Tributáveis (Bruto)
 function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) {
     
-    // 1. Isenção direta pelo Bruto <= 5000
+    // 1. Isenção direta pelo Bruto (Rendimentos Tributáveis) <= 5000
     if (rendimentosTributaveis <= 5000) return 0;
 
-    // 2. Cálculo do Imposto Padrão sobre a BASE (Bruto - INSS - Dependentes)
+    // 2. Cálculo do Imposto Padrão sobre a BASE LÍQUIDA (Bruto - INSS - Dependentes)
     const deducoesDependentes = dependentes * regras.deducaoPorDependenteIRRF;
     const baseFinal = Math.max(0, baseCalculo - deducoesDependentes);
 
@@ -62,7 +62,7 @@ function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) 
     }
 
     // 3. Aplicação do Redutor (Lei 15.270)
-    // FÓRMULA CORRIGIDA: Redutor incide sobre RENDIMENTOS TRIBUTÁVEIS (BRUTO), não sobre a Base.
+    // FÓRMULA: Redutor incide sobre RENDIMENTOS TRIBUTÁVEIS (BRUTO)
     if (rendimentosTributaveis > 5000 && rendimentosTributaveis <= 7500) {
         const redutor = 978.62 - (0.133145 * rendimentosTributaveis);
         
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultContainer = document.getElementById('resultado-container');
     const mesReferenciaInput = document.getElementById('mesReferencia');
     
-    // UX: Seleciona mês atual se vazio
+    // UX: Seleciona mês atual automaticamente
     if (!mesReferenciaInput.value) {
         const hoje = new Date();
         const ano = hoje.getFullYear();
@@ -222,7 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
         mostrarResultados();
     }
 
-    // --- MANTER LÓGICA DE FERIAS E OUTROS ---
     function alternarModoDias() {
         const opcaoSelecionada = document.querySelector('input[name="tipoDias"]:checked');
         if(!opcaoSelecionada) return;
@@ -273,8 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
             dataFimFerias.setDate(dataFimFerias.getDate() + duracao - 1);
             
             const texto = (dataFimFerias <= fimMes) ? "Sanduíche (Retornou)" : "Saída (Não retornou)";
+            
             if (dataFimFerias <= fimMes) {
-                // Férias inteiras no mês
                 const diasFeriasNoMes = Math.ceil((dataFimFerias - dataInicioFerias)/(1000*60*60*24)) + 1;
                 diasTrabalhados = 30 - diasFeriasNoMes;
             } else {
@@ -296,6 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleCalcular() {
+        // Função para Dinheiro
         const getMoney = (id) => { 
             const el = document.getElementById(id); 
             if(!el) return 0;
@@ -303,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const v = parseFloat(valStr); 
             return isNaN(v) ? 0 : v; 
         };
+        // Função para Números Decimais
         const getNumber = (id) => { 
             const el = document.getElementById(id); 
             if(!el) return 0;
@@ -422,13 +423,33 @@ document.addEventListener('DOMContentLoaded', () => {
     inicioFeriasInput.addEventListener('change', calcularDiasProporcionaisFerias);
     qtdDiasFeriasInput.addEventListener('input', calcularDiasProporcionaisFerias);
     document.querySelectorAll('input[name="tipoDias"]').forEach(radio => radio.addEventListener('change', alternarModoDias));
-    document.querySelectorAll('.hora-conversivel').forEach(c => { 
-        c.addEventListener('blur', function() { 
-            let v = this.value.replace(',', '.').replace(':', '.'); 
-            if(v) this.value = parseFloat(v).toFixed(2); 
+    
+    // Auto-formatação Inteligente de Horas (Lê 5:30 ou 5h30 e converte para 5,50)
+    document.querySelectorAll('.hora-conversivel').forEach(input => { 
+        input.addEventListener('blur', function() { 
+            let valor = this.value.trim().toLowerCase(); 
+            if (!valor) return;
+
+            let valorDecimal = 0;
+
+            if (valor.includes(':') || valor.includes('h')) {
+                let partes = valor.replace('h', ':').split(':');
+                let horas = parseInt(partes[0]) || 0;
+                let minutos = parseInt(partes[1]) || 0;
+                valorDecimal = horas + (minutos / 60);
+            } else {
+                valorDecimal = parseFloat(valor.replace(',', '.'));
+            }
+
+            if (!isNaN(valorDecimal)) {
+                this.value = valorDecimal.toFixed(2).replace('.', ',');
+            } else {
+                this.value = ''; 
+            }
         }); 
     });
 
+    // Início padrão da página
     restaurarDadosFixos();
     alternarModoDias();
     preencherDiasMes(); 
