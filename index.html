@@ -7,7 +7,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="logo-icon.png"> <meta name="theme-color" content="#1a1a1a">
+  <link rel="icon" href="logo-icon.png">
+  <meta name="theme-color" content="#1a1a1a">
 </head>
 <body>
 
@@ -66,15 +67,15 @@
                             <div class="segmented-control">
                                 <label class="segment-btn">
                                     <input type="radio" name="tipoDias" value="completo" checked />
-                                    <span>Completo</span>
+                                    <span>Mensal</span>
                                 </label>
                                 <label class="segment-btn">
                                     <input type="radio" name="tipoDias" value="saida_ferias" />
-                                    <span>Saída Férias</span>
+                                    <span>Mês de Férias</span>
                                 </label>
                                 <label class="segment-btn">
                                     <input type="radio" name="tipoDias" value="retorno_ferias" />
-                                    <span>Retorno</span>
+                                    <span>Retorno de Férias</span>
                                 </label>
                             </div>
                         </div>
@@ -109,7 +110,11 @@
                         </div>
 
                         <div class="input-group mt-4">
-                            <label class="label-bold mb-2">Feriados Locais</label>
+                            <label class="label-bold mb-2" style="margin-bottom: 2px;">Feriados Locais</label>
+                            <p class="helper-text" style="margin-top: 0; margin-bottom: 10px; font-size: 0.8rem;">
+                                ℹ️ Adicione aqui os feriados municipais e estaduais.
+                            </p>
+                            
                             <div class="feriado-widget">
                                 <div class="feriado-inputs">
                                     <select id="diaFeriado" class="form-select">
