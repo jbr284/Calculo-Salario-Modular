@@ -1,9 +1,9 @@
-// app.js - SISTEMA DE FOLHA MODULAR DATA CENTERS (Ajuste de Base e Contrib. Assistencial)
+// app.js - SISTEMA DE FOLHA MODULAR DATA CENTERS (INSS, IRRF 2026 + Automação Assistencial)
 
 const regras = {
     "anoVigencia": 2026,
-    "salarioMinimo": 1518.00,
-    "tetoINSS": 8157.41,
+    "salarioMinimo": 1621.00,
+    "tetoINSS": 8475.55,
     "percentualAdiantamento": 0.4,
     "percentualAdicionalNoturno": 0.35,
     "descontoFixoVA": 23.97,
@@ -11,12 +11,15 @@ const regras = {
     "valorSindicato": 47.5,
     "deducaoPorDependenteIRRF": 189.59,
     
+    // TABELA INSS 2026
     "tabelaINSS": [
       { "ate": 1621.00, "aliquota": 0.075, "deduzir": 0 },
       { "ate": 2902.84, "aliquota": 0.09, "deduzir": 24.32 },
       { "ate": 4354.27, "aliquota": 0.12, "deduzir": 111.40 },
       { "ate": 8475.55, "aliquota": 0.14, "deduzir": 198.49 }
     ],
+    
+    // TABELA IRRF 2026
     "tabelaIRRF": [
       { "ate": 2428.80, "aliquota": 0, "deduzir": 0 },
       { "ate": 2826.65, "aliquota": 0.075, "deduzir": 182.16 },
@@ -24,6 +27,7 @@ const regras = {
       { "ate": 4664.68, "aliquota": 0.225, "deduzir": 675.49 },
       { "ate": "acima", "aliquota": 0.275, "deduzir": 908.73 }
     ],
+    
     "planosSESI": {
       "nenhum": 0,
       "basico_individual": 29,
@@ -99,18 +103,18 @@ function calcularSalarioCompleto(inputs, regras) {
     const descontoVA = regras.descontoFixoVA;
     const descontoVT = descontarVT ? (salario * regras.percentualVT) : 0;
     
-    // NOVO: Abatimento de Faltas e Atrasos na Base do INSS
+    // INSS com base abatida
     const baseINSS = totalBruto - descontoFaltas - descontoAtrasos;
     const inss = calcularINSS(baseINSS, regras);
     
-    // Base IRRF (Líquida do INSS já sobre a base abatida)
+    // IRRF
     const baseIRRF = baseINSS - inss;
     const irrf = calcularIRRF(baseIRRF, dependentes, regras, totalBruto);
     
     const descontoPlano = regras.planosSESI[plano] || 0;
     const descontoSindicato = sindicato === 'sim' ? regras.valorSindicato : 0;
     
-    // Soma total dos descontos (incluindo a nova contribuição)
+    // Soma total dos descontos
     const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + assistencial + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
     const liquido = totalBruto - totalDescontos;
 
@@ -306,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputs = {
             salario: getMoney('salario'), 
             emprestimo: getMoney('emprestimo'), 
-            assistencial: getMoney('assistencial'), // Capturando a Contribuição Assistencial
+            assistencial: getMoney('assistencial'),
             diasTrab: getNumber('diasTrab'), 
             dependentes: getNumber('dependentes'),
             faltas: getNumber('faltas'),
@@ -401,6 +405,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- NOVA FUNÇÃO: AUTO CALCULAR ASSISTENCIAL ---
+    function autoCalcularAssistencial() {
+        const valStr = document.getElementById('salario').value.replace(/\./g, '').replace(',', '.');
+        const salario = parseFloat(valStr) || 0;
+        const mesRefStr = document.getElementById('mesReferencia').value;
+        
+        if (salario > 0 && mesRefStr) {
+            const mes = parseInt(mesRefStr.split('-')[1], 10);
+            const campoAssistencial = document.getElementById('assistencial');
+            
+            // Regra: 2% nos meses 1 (Jan), 2 (Fev) e 3 (Mar)
+            if (mes >= 1 && mes <= 3) {
+                const valor = salario * 0.02;
+                campoAssistencial.value = valor.toFixed(2).replace('.', ',');
+            } else {
+                campoAssistencial.value = "0,00";
+            }
+        }
+    }
+
+    // Eventos 
     document.getElementById('btn-calcular').addEventListener('click', handleCalcular);
     document.getElementById('btn-voltar').addEventListener('click', mostrarFormulario);
     document.getElementById('btn-salvar').addEventListener('click', salvarDadosFixos);
@@ -411,12 +436,20 @@ document.addEventListener('DOMContentLoaded', () => {
         html2pdf().set(opt).from(document.getElementById('resultado-container')).save();
     });
 
-    mesReferenciaInput.addEventListener('change', preencherDiasMes);
+    // Gatilhos para o Mês e Férias
+    mesReferenciaInput.addEventListener('change', () => {
+        preencherDiasMes();
+        autoCalcularAssistencial();
+    });
+    
+    // Gatilho para o Salário (Preenche a Assistencial ao digitar o salário)
+    document.getElementById('salario').addEventListener('blur', autoCalcularAssistencial);
+
     inicioFeriasInput.addEventListener('change', calcularDiasProporcionaisFerias);
     qtdDiasFeriasInput.addEventListener('input', calcularDiasProporcionaisFerias);
     document.querySelectorAll('input[name="tipoDias"]').forEach(radio => radio.addEventListener('change', alternarModoDias));
     
-    // Auto-formatação Inteligente de Horas (Lê 5:30 ou 5h30 e converte para 5,50)
+    // Auto-formatação Inteligente de Horas
     document.querySelectorAll('.hora-conversivel').forEach(input => { 
         input.addEventListener('blur', function() { 
             let valor = this.value.trim().toLowerCase(); 
@@ -445,6 +478,5 @@ document.addEventListener('DOMContentLoaded', () => {
     restaurarDadosFixos();
     alternarModoDias();
     preencherDiasMes(); 
-
+    autoCalcularAssistencial(); // Força o cálculo assim que a página carrega
 });
-
