@@ -49,7 +49,7 @@ body {
 .header-left { display: flex; align-items: center; gap: 20px; }
 
 .branding-area { display: flex; align-items: center; }
-.logo-img { height: 40px; width: auto; object-fit: contain; } /* Ajuste altura conforme necessário */
+.logo-img { height: 40px; width: auto; object-fit: contain; } 
 
 .divider-vertical { width: 1px; height: 30px; background: rgba(255,255,255,0.2); }
 
@@ -93,7 +93,6 @@ body {
 .panel-header h2 { font-size: 1.1rem; margin: 0; font-weight: 600; }
 .panel-header .material-symbols-outlined { font-size: 1.2rem; }
 
-/* Cores de Cabeçalho dos Cards */
 .header-dark { color: var(--modular-dark); background: #f8f9fa; }
 .header-green { color: var(--success-color); background: #e8f5e9; }
 .header-red { color: var(--danger-color); background: #ffebee; }
@@ -180,3 +179,13 @@ input:checked + .slider:before { transform: translateX(22px); }
     .actions-bar-sticky { flex-direction: column; position: static; background: transparent; box-shadow: none; border: none; padding: 0; }
     .btn { width: 100%; justify-content: center; }
 }
+
+/* --- MODO PDF COMPACTO (Força o Holerite numa única página A4) --- */
+.pdf-compacto { padding: 20px !important; border-top: none !important; box-shadow: none !important; }
+.pdf-compacto .report-header { margin-bottom: 15px !important; padding-bottom: 10px !important; }
+.pdf-compacto .report-logo { height: 40px !important; margin-bottom: 5px !important; }
+.pdf-compacto .report-meta { padding: 10px !important; margin-top: 10px !important; font-size: 0.85rem !important; }
+.pdf-compacto .result-table td { padding: 6px 5px !important; font-size: 0.85rem !important; border-bottom: 1px solid #ddd !important; }
+.pdf-compacto .section-header td { padding-top: 12px !important; font-size: 0.8rem !important; }
+.pdf-compacto .final-result-main td { padding: 10px 5px !important; font-size: 1.1rem !important; }
+.pdf-compacto .final-result-secondary td { font-size: 0.9rem !important; }
