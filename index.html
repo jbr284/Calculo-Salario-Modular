@@ -51,6 +51,18 @@
                         <h2>Dados do Colaborador</h2>
                     </div>
                     <div class="panel-body">
+                        
+                        <div class="form-row mb-3">
+                            <div class="input-group flex-1">
+                                <label for="nomeColaborador">Nome Completo</label>
+                                <input type="text" id="nomeColaborador" class="form-control" placeholder="Ex: João da Silva" />
+                            </div>
+                            <div class="input-group flex-1">
+                                <label for="cargoColaborador">Cargo</label>
+                                <input type="text" id="cargoColaborador" class="form-control" placeholder="Ex: Analista de Suporte" />
+                            </div>
+                        </div>
+
                         <div class="form-row">
                             <div class="input-group flex-1">
                                 <label for="mesReferencia">Mês de Referência *</label>
@@ -229,7 +241,11 @@
           <div class="report-header">
               <img src="logo-modular.png" alt="Modular" class="report-logo">
               <h2>Demonstrativo de Pagamento</h2>
-              <span class="report-date">Referência: <span id="ref-display">--/--</span></span>
+              <div class="report-meta" style="margin-top: 15px; font-size: 0.95rem; color: #444; text-align: left; padding: 15px; background: #f9f9f9; border-radius: 6px; border-left: 4px solid var(--modular-green);">
+                  <strong>Colaborador(a):</strong> <span id="report-nome-display">Não informado</span> <br>
+                  <strong>Cargo:</strong> <span id="report-cargo-display">Não informado</span> <br>
+                  <strong>Referência:</strong> <span id="ref-display">--/--</span>
+              </div>
           </div>
           <div id="resultado-container" class="report-body"></div>
       </div>
@@ -238,7 +254,7 @@
             <span class="material-symbols-outlined">arrow_back</span> Voltar
           </button>
           <button type="button" id="btn-pdf" class="btn btn-danger btn-lg">
-            <span class="material-symbols-outlined">picture_as_pdf</span> PDF
+            <span class="material-symbols-outlined">picture_as_pdf</span> Baixar PDF
           </button>
       </div>
     </div>
@@ -262,6 +278,12 @@
              const [ano, mes] = mesRef.split('-');
              document.getElementById('ref-display').textContent = `${mes}/${ano}`;
          }
+         
+         const nome = document.getElementById('nomeColaborador').value;
+         const cargo = document.getElementById('cargoColaborador').value;
+         
+         document.getElementById('report-nome-display').textContent = nome ? nome : "Não informado";
+         document.getElementById('report-cargo-display').textContent = cargo ? cargo : "Não informado";
       });
   </script>
 </body>
