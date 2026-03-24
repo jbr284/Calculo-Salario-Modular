@@ -386,18 +386,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function salvarDadosFixos() {
         const dados = {
+            nome: document.getElementById('nomeColaborador').value,
+            cargo: document.getElementById('cargoColaborador').value,
             salario: document.getElementById('salario').value,
             dependentes: document.getElementById('dependentes').value,
             plano: document.getElementById('plano').value,
             sindicato: document.getElementById('sindicato').value
         };
         localStorage.setItem('dadosFixosModular', JSON.stringify(dados));
-        alert('Dados salvos!');
+        alert('Dados salvos na memória!');
     }
 
     function restaurarDadosFixos() {
         const dados = JSON.parse(localStorage.getItem('dadosFixosModular'));
         if (dados) {
+            document.getElementById('nomeColaborador').value = dados.nome || "";
+            document.getElementById('cargoColaborador').value = dados.cargo || "";
             document.getElementById('salario').value = dados.salario || "";
             document.getElementById('dependentes').value = dados.dependentes || "";
             document.getElementById('plano').value = dados.plano || "nenhum";
@@ -405,7 +409,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- NOVA FUNÇÃO: AUTO CALCULAR ASSISTENCIAL ---
     function autoCalcularAssistencial() {
         const valStr = document.getElementById('salario').value.replace(/\./g, '').replace(',', '.');
         const salario = parseFloat(valStr) || 0;
@@ -419,12 +422,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let aplicaDesconto = false;
 
             if (associadoSindicato) {
-                // Regra 1: Associado paga 4% (sendo 2% em Janeiro e 2% em Fevereiro)
                 if (mes >= 1 && mes <= 2) {
                     aplicaDesconto = true;
                 }
             } else {
-                // Regra 2: Não associado paga 2% (em Janeiro, Fevereiro e Março)
                 if (mes >= 1 && mes <= 3) {
                     aplicaDesconto = true;
                 }
@@ -439,50 +440,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Eventos 
     document.getElementById('btn-calcular').addEventListener('click', handleCalcular);
     document.getElementById('btn-voltar').addEventListener('click', mostrarFormulario);
     document.getElementById('btn-salvar').addEventListener('click', salvarDadosFixos);
     document.getElementById('btn-add-feriado').addEventListener('click', adicionarFeriado);
     document.getElementById('btn-limpar-feriados').addEventListener('click', () => { if(confirm('Limpar?')) { document.getElementById('feriadosExtras').value=''; document.getElementById('listaFeriados').innerHTML=''; preencherDiasMes(); } });
     
-    // --- FUNÇÃO DO PDF ATUALIZADA ---
+    // --- FUNÇÃO DO PDF (Forçando 1 Página Única) ---
     document.getElementById('btn-pdf').addEventListener('click', () => {
-        // Altera o alvo: agora fotografa o cartão completo com logo e cabeçalho
         const elementoAlvo = document.querySelector('.report-card');
         
+        // 1. Aplica o modo compacto instantâneo para caber numa folha
+        elementoAlvo.classList.add('pdf-compacto');
+        
         const opt = { 
-            margin: [15, 10, 15, 10], // Margens: superior, esquerda, inferior, direita (mm)
+            margin: [10, 10, 10, 10], // Margens menores para aproveitar o A4
             filename: 'demonstrativo-modular.pdf', 
-            image: { type: 'jpeg', quality: 0.98 }, 
+            image: { type: 'jpeg', quality: 1 }, 
             html2canvas: { 
                 scale: 2, 
-                useCORS: true, // Garante o carregamento da logo da Modular
-                scrollY: 0     // Elimina o espaço branco indesejado
+                useCORS: true, 
+                scrollY: 0     
             }, 
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
         };
         
-        html2pdf().set(opt).from(elementoAlvo).save();
+        // 2. Tira a fotografia, gera o PDF e DEPOIS volta o ecrã ao normal
+        html2pdf().set(opt).from(elementoAlvo).save().then(() => {
+            elementoAlvo.classList.remove('pdf-compacto');
+        });
     });
 
-    // Gatilhos para o Mês e Férias
     mesReferenciaInput.addEventListener('change', () => {
         preencherDiasMes();
         autoCalcularAssistencial();
     });
     
-    // Gatilho para o Salário (Preenche a Assistencial ao digitar o salário)
     document.getElementById('salario').addEventListener('blur', autoCalcularAssistencial);
-
-    // Gatilho para o Sindicato (Muda o cálculo em tempo real se trocar a opção)
     document.getElementById('sindicato').addEventListener('change', autoCalcularAssistencial);
 
     inicioFeriasInput.addEventListener('change', calcularDiasProporcionaisFerias);
     qtdDiasFeriasInput.addEventListener('input', calcularDiasProporcionaisFerias);
     document.querySelectorAll('input[name="tipoDias"]').forEach(radio => radio.addEventListener('change', alternarModoDias));
     
-    // Auto-formatação Inteligente de Horas
     document.querySelectorAll('.hora-conversivel').forEach(input => { 
         input.addEventListener('blur', function() { 
             let valor = this.value.trim().toLowerCase(); 
@@ -507,9 +507,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
     });
 
-    // Início padrão da página
     restaurarDadosFixos();
     alternarModoDias();
     preencherDiasMes(); 
-    autoCalcularAssistencial(); // Força o cálculo assim que a página carrega
+    autoCalcularAssistencial(); 
 });
