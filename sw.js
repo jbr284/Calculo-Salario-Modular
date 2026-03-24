@@ -1,5 +1,5 @@
 // Aumentamos a versão para forçar a atualização dos novos arquivos
-const CACHE_NAME = 'salario-Modular-cache-v19'; 
+const CACHE_NAME = 'salario-Modular-cache-v21'; 
 const urlsToCache = [
   './',
   'index.html',
@@ -20,7 +20,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// (O restante do arquivo sw.js pode ser mantido igual, apenas a constante do nome mudou)
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -40,7 +39,6 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const requestUrl = new URL(event.request.url);
 
-  // Estratégia Stale-While-Revalidate para arquivos principais
   if (requestUrl.pathname.endsWith('index.html') || 
       requestUrl.pathname.endsWith('app.js') || 
       requestUrl.pathname.endsWith('regras.js') || 
@@ -70,22 +68,3 @@ self.addEventListener('fetch', event => {
     );
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
