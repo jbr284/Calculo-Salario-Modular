@@ -410,13 +410,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const valStr = document.getElementById('salario').value.replace(/\./g, '').replace(',', '.');
         const salario = parseFloat(valStr) || 0;
         const mesRefStr = document.getElementById('mesReferencia').value;
+        const associadoSindicato = document.getElementById('sindicato').value === 'sim';
         
         if (salario > 0 && mesRefStr) {
             const mes = parseInt(mesRefStr.split('-')[1], 10);
             const campoAssistencial = document.getElementById('assistencial');
             
-            // Regra: 2% nos meses 1 (Jan), 2 (Fev) e 3 (Mar)
-            if (mes >= 1 && mes <= 3) {
+            let aplicaDesconto = false;
+
+            if (associadoSindicato) {
+                // Regra 1: Associado paga 4% (sendo 2% em Janeiro e 2% em Fevereiro)
+                if (mes >= 1 && mes <= 2) {
+                    aplicaDesconto = true;
+                }
+            } else {
+                // Regra 2: Não associado paga 2% (em Janeiro, Fevereiro e Março)
+                if (mes >= 1 && mes <= 3) {
+                    aplicaDesconto = true;
+                }
+            }
+
+            if (aplicaDesconto) {
                 const valor = salario * 0.02;
                 campoAssistencial.value = valor.toFixed(2).replace('.', ',');
             } else {
@@ -444,6 +458,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Gatilho para o Salário (Preenche a Assistencial ao digitar o salário)
     document.getElementById('salario').addEventListener('blur', autoCalcularAssistencial);
+
+    // Novo Gatilho para o Sindicato (Muda o cálculo em tempo real se trocar a opção)
+    document.getElementById('sindicato').addEventListener('change', autoCalcularAssistencial);
 
     inicioFeriasInput.addEventListener('change', calcularDiasProporcionaisFerias);
     qtdDiasFeriasInput.addEventListener('input', calcularDiasProporcionaisFerias);
