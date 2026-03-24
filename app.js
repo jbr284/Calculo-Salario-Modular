@@ -445,9 +445,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-salvar').addEventListener('click', salvarDadosFixos);
     document.getElementById('btn-add-feriado').addEventListener('click', adicionarFeriado);
     document.getElementById('btn-limpar-feriados').addEventListener('click', () => { if(confirm('Limpar?')) { document.getElementById('feriadosExtras').value=''; document.getElementById('listaFeriados').innerHTML=''; preencherDiasMes(); } });
+    
+    // --- FUNÇÃO DO PDF ATUALIZADA ---
     document.getElementById('btn-pdf').addEventListener('click', () => {
-        const opt = { margin: 10, filename: 'holerite-modular.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } };
-        html2pdf().set(opt).from(document.getElementById('resultado-container')).save();
+        // Altera o alvo: agora fotografa o cartão completo com logo e cabeçalho
+        const elementoAlvo = document.querySelector('.report-card');
+        
+        const opt = { 
+            margin: [15, 10, 15, 10], // Margens: superior, esquerda, inferior, direita (mm)
+            filename: 'demonstrativo-modular.pdf', 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, // Garante o carregamento da logo da Modular
+                scrollY: 0     // Elimina o espaço branco indesejado
+            }, 
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+        };
+        
+        html2pdf().set(opt).from(elementoAlvo).save();
     });
 
     // Gatilhos para o Mês e Férias
@@ -459,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Gatilho para o Salário (Preenche a Assistencial ao digitar o salário)
     document.getElementById('salario').addEventListener('blur', autoCalcularAssistencial);
 
-    // Novo Gatilho para o Sindicato (Muda o cálculo em tempo real se trocar a opção)
+    // Gatilho para o Sindicato (Muda o cálculo em tempo real se trocar a opção)
     document.getElementById('sindicato').addEventListener('change', autoCalcularAssistencial);
 
     inicioFeriasInput.addEventListener('change', calcularDiasProporcionaisFerias);
