@@ -1,5 +1,5 @@
-// Aumentamos a versão para forçar a atualização (Versão 22)
-const CACHE_NAME = 'salario-Modular-cache-v22'; 
+// Aumentamos a versão para forçar a atualização dos novos arquivos
+const CACHE_NAME = 'salario-Modular-cache-v24'; 
 const urlsToCache = [
   './',
   'index.html',
