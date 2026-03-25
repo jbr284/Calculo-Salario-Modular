@@ -8,7 +8,7 @@ const regras = {
     "percentualAdicionalNoturno": 0.35,
     "descontoFixoVA": 23.97,
     "percentualVT": 0.06,
-    "valorSindicato": 47.5,
+    "valorSindicato": 50,00
     "deducaoPorDependenteIRRF": 189.59,
     
     // TABELA INSS 2026
