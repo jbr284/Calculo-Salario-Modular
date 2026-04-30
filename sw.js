@@ -1,12 +1,10 @@
 // Aumentamos a versão para forçar a atualização dos novos arquivos
-const CACHE_NAME = 'salario-Modular-cache-v24'; 
+const CACHE_NAME = 'salario-Modular-cache-v25'; 
 const urlsToCache = [
   './',
   'index.html',
   'style.css',
   'app.js',
-  'regras.js',
-  'calculadora-regras.js',
   'manifest.json',
   'icons/icon-192-v2.png', 
   'icons/icon-512-v2.png'
@@ -41,8 +39,6 @@ self.addEventListener('fetch', event => {
 
   if (requestUrl.pathname.endsWith('index.html') || 
       requestUrl.pathname.endsWith('app.js') || 
-      requestUrl.pathname.endsWith('regras.js') || 
-      requestUrl.pathname.endsWith('calculadora-regras.js') || 
       requestUrl.pathname.endsWith('style.css') ||
       requestUrl.pathname.endsWith('/')) { 
     
