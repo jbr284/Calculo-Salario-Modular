@@ -118,16 +118,32 @@ function calcularSalarioCompleto(inputs, regras) {
     const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + assistencial + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
     const liquido = totalBruto - totalDescontos;
 
+    const formatarMoedaRef = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
     return {
         proventos: { 
-            vencBase, 
-            valorHE50, valorHE60, valorHE80, valorHE100, valorHE150, 
+            vencBase, valorHE50, valorHE60, valorHE80, valorHE100, valorHE150, 
             valorNoturno, dsrHE, dsrNoturno, totalBruto,
-            temHE: totalHE > 0,
-            temNoturno: valorNoturno > 0
+            temHE: totalHE > 0, temNoturno: valorNoturno > 0
         },
         descontos: { 
             descontoFaltas, descontoAtrasos, descontoPlano, assistencial, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos 
+        },
+        refs: {
+            diasEfetivos: `${diasEfetivos} d`,
+            he50: `${he50} h`,
+            he60: `${he60} h`,
+            he80: `${he80} h`,
+            he100: `${he100} h`,
+            he150: `${he150} h`,
+            noturno: `${noturno} h`,
+            dsr: `${domFeriados} d`,
+            faltas: `${faltas} d`,
+            atrasos: `${atrasos} h`,
+            baseINSS: formatarMoedaRef(baseINSS),
+            baseIRRF: formatarMoedaRef(baseIRRF),
+            vtRef: '6%',
+            adiantRef: '40%'
         },
         fgts, liquido
     };
@@ -169,50 +185,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderizarResultados(resultado) {
-        const { proventos, descontos, liquido, fgts } = resultado;
+        const { proventos, descontos, liquido, fgts, refs } = resultado;
         const liquidoMensal = liquido + descontos.adiantamento;
         
-        const row = (label, val, forcar = false) => {
+        // Função atualizada para renderizar as 3 colunas
+        const row = (label, ref, val, forcar = false) => {
             if (val > 0.01 || forcar) {
-                return `<tr><td>${label}</td><td class="valor">${formatarMoeda(val)}</td></tr>`;
+                return `<tr>
+                            <td>${label}</td>
+                            <td style="text-align:center; color:#666; font-size: 13px;">${ref}</td>
+                            <td class="valor" style="text-align:right;">${formatarMoeda(val)}</td>
+                        </tr>`;
             }
             return '';
         };
 
         resultContainer.innerHTML = `
-            <table class="result-table">
-                <thead><tr><th>Descrição</th><th>Valor</th></tr></thead>
+            <table class="result-table" style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #ccc;">
+                        <th style="text-align:left; padding-bottom: 8px;">Descrição</th>
+                        <th style="text-align:center; padding-bottom: 8px;">Ref.</th>
+                        <th style="text-align:right; padding-bottom: 8px;">Valor</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <tr class="section-header"><td colspan="2">Proventos</td></tr>
-                    ${row('Salário Base Proporcional', proventos.vencBase)}
-                    ${row('Hora Extra 50%', proventos.valorHE50)}
-                    ${row('Hora Extra 60%', proventos.valorHE60)}
-                    ${row('Hora Extra 80%', proventos.valorHE80)}
-                    ${row('Hora Extra 100%', proventos.valorHE100)}
-                    ${row('Hora Extra 150%', proventos.valorHE150)}
-                    ${row('Adicional Noturno (35%)', proventos.valorNoturno)}
-                    ${row('DSR sobre Horas Extras', proventos.dsrHE, proventos.temHE)}
-                    ${row('DSR sobre Adic. Noturno', proventos.dsrNoturno, proventos.temNoturno)}
-                    <tr class="summary-row"><td>Total Bruto (Tributável)</td><td class="valor">${formatarMoeda(proventos.totalBruto)}</td></tr>
+                    <tr class="section-header"><td colspan="3" style="padding-top: 15px; font-weight: bold; color: #0d47a1;">Proventos</td></tr>
+                    ${row('Salário Base Proporcional', refs.diasEfetivos, proventos.vencBase)}
+                    ${row('Hora Extra 50%', refs.he50, proventos.valorHE50)}
+                    ${row('Hora Extra 60%', refs.he60, proventos.valorHE60)}
+                    ${row('Hora Extra 80%', refs.he80, proventos.valorHE80)}
+                    ${row('Hora Extra 100%', refs.he100, proventos.valorHE100)}
+                    ${row('Hora Extra 150%', refs.he150, proventos.valorHE150)}
+                    ${row('Adicional Noturno (35%)', refs.noturno, proventos.valorNoturno)}
+                    ${row('DSR sobre Horas Extras', refs.dsr, proventos.dsrHE, proventos.temHE)}
+                    ${row('DSR sobre Adic. Noturno', refs.dsr, proventos.dsrNoturno, proventos.temNoturno)}
+                    <tr class="summary-row">
+                        <td colspan="2" style="font-weight:bold; padding-top:10px;">Total Bruto (Tributável)</td>
+                        <td class="valor" style="text-align:right; font-weight:bold; padding-top:10px;">${formatarMoeda(proventos.totalBruto)}</td>
+                    </tr>
                     
-                    <tr class="section-header"><td colspan="2">Descontos</td></tr>
-                    ${row('INSS', descontos.inss)}
-                    ${row('IRRF (Lei 15.270/25)', descontos.irrf)}
-                    ${row('Faltas (dias)', descontos.descontoFaltas)}
-                    ${row('Atrasos (horas)', descontos.descontoAtrasos)}
-                    ${row('Adiantamento (40%)', descontos.adiantamento)}
-                    ${row('Vale Transporte (6%)', descontos.descontoVT)}
-                    ${row('Vale Alimentação (Fixo)', descontos.descontoVA)}
-                    ${row('Convênio SESI', descontos.descontoPlano)}
-                    ${row('Contribuição Assistencial', descontos.assistencial)}
-                    ${row('Mensalidade Sindical', descontos.descontoSindicato)}
-                    ${row('Empréstimo Consignado', descontos.emprestimo)}
-                    <tr class="summary-row"><td>Total Descontos</td><td class="valor">${formatarMoeda(descontos.totalDescontos)}</td></tr>
+                    <tr class="section-header"><td colspan="3" style="padding-top: 15px; font-weight: bold; color: #d32f2f;">Descontos</td></tr>
+                    ${row('INSS', refs.baseINSS, descontos.inss)}
+                    ${row('IRRF (Lei 15.270/25)', refs.baseIRRF, descontos.irrf)}
+                    ${row('Faltas', refs.faltas, descontos.descontoFaltas)}
+                    ${row('Atrasos', refs.atrasos, descontos.descontoAtrasos)}
+                    ${row('Adiantamento', refs.adiantRef, descontos.adiantamento)}
+                    ${row('Vale Transporte', refs.vtRef, descontos.descontoVT)}
+                    ${row('Vale Alimentação', 'Fixo', descontos.descontoVA)}
+                    ${row('Convênio SESI', '-', descontos.descontoPlano)}
+                    ${row('Contribuição Assistencial', '-', descontos.assistencial)}
+                    ${row('Mensalidade Sindical', '-', descontos.descontoSindicato)}
+                    ${row('Empréstimo Consignado', '-', descontos.emprestimo)}
+                    <tr class="summary-row">
+                        <td colspan="2" style="font-weight:bold; padding-top:10px;">Total Descontos</td>
+                        <td class="valor" style="text-align:right; font-weight:bold; padding-top:10px;">${formatarMoeda(descontos.totalDescontos)}</td>
+                    </tr>
                     
-                    <tr class="section-header"><td colspan="2">Resumo Final</td></tr>
-                    <tr class="final-result-main"><td>Salário Líquido</td><td class="valor">${formatarMoeda(liquido)}</td></tr>
-                    <tr class="final-result-secondary"><td>Salário Líquido Total (Mês)</td><td class="valor">${formatarMoeda(liquidoMensal)}</td></tr>
-                    <tr class="final-result-secondary fgts-row"><td>FGTS (Depósito)</td><td class="valor">${formatarMoeda(fgts)}</td></tr>
+                    <tr class="section-header"><td colspan="3" style="padding-top: 20px;"></td></tr>
+                    <tr class="final-result-main">
+                        <td colspan="2" style="font-weight:bold; font-size: 16px;">Salário Líquido</td>
+                        <td class="valor" style="text-align:right; font-weight:bold; font-size: 16px; color: #2e7d32;">${formatarMoeda(liquido)}</td>
+                    </tr>
+                    <tr class="final-result-secondary">
+                        <td colspan="2" style="color:#666;">Salário Líquido Total (Mês)</td>
+                        <td class="valor" style="text-align:right; color:#666;">${formatarMoeda(liquidoMensal)}</td>
+                    </tr>
+                    <tr class="final-result-secondary fgts-row">
+                        <td colspan="2" style="color:#f57c00; font-weight:bold; padding-top:5px;">FGTS (Depósito)</td>
+                        <td class="valor" style="text-align:right; color:#f57c00; font-weight:bold; padding-top:5px;">${formatarMoeda(fgts)}</td>
+                    </tr>
                 </tbody>
             </table>
         `;
@@ -351,31 +393,67 @@ document.addEventListener('DOMContentLoaded', () => {
         preencherDiasMes();
     }
 
+    // Função de preencher dias do mês com cálculo da Páscoa e Varredura à prova de bugs
     function preencherDiasMes() {
         const mesAno = document.getElementById('mesReferencia').value;
         if (!mesAno) return;
         const [ano, mes] = mesAno.split('-').map(Number);
         const diasNoMes = new Date(ano, mes, 0).getDate();
-        let diasUteis = 0, domingos = 0;
-        for (let d = 1; d <= diasNoMes; d++) {
-            const data = new Date(ano, mes - 1, d);
-            const diaSemana = data.getDay();
-            if (diaSemana >= 1 && diaSemana <= 6) diasUteis++;
-            if (diaSemana === 0) domingos++;
-        }
+        
+        // 1. Calcula a data exata da Páscoa do ano para achar os feriados móveis
+        const a = ano % 19;
+        const b = Math.floor(ano / 100), c = ano % 100;
+        const d = Math.floor(b / 4), e = b % 4;
+        const f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3);
+        const h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4), k = c % 4;
+        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const mesPascoa = Math.floor((h + l - 7 * m + 114) / 31);
+        const diaPascoa = ((h + l - 7 * m + 114) % 31) + 1;
+
+        const pascoa = new Date(ano, mesPascoa - 1, diaPascoa);
+        const sextaSanta = new Date(pascoa); sextaSanta.setDate(pascoa.getDate() - 2);
+        const carnaval = new Date(pascoa); carnaval.setDate(pascoa.getDate() - 47);
+        const corpusChristi = new Date(pascoa); corpusChristi.setDate(pascoa.getDate() + 60);
+
+        const formatarDDMM = (dt) => String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0');
+        const feriadosMoveis = [formatarDDMM(sextaSanta), formatarDDMM(carnaval), formatarDDMM(corpusChristi)];
+        
+        // 2. Feriados Fixos Nacionais
         const feriadosFixos = ["01/01", "21/04", "01/05", "07/09", "12/10", "02/11", "15/11", "25/12"];
-        let feriadosNacionais = 0;
-        feriadosFixos.forEach(fix => {
-            const [dia, mesFix] = fix.split('/');
-            if (parseInt(mesFix) === mes) {
-                const dt = new Date(ano, mes - 1, parseInt(dia));
-                if (dt.getDay() !== 0) feriadosNacionais++;
+
+        // 3. Feriados Extras Manuais
+        const extrasStr = document.getElementById('feriadosExtras').value;
+        const extrasArray = extrasStr ? extrasStr.split(',').map(d => {
+            const pts = d.split('/');
+            return String(pts[0]).padStart(2, '0') + '/' + String(pts[1]).padStart(2, '0');
+        }) : [];
+
+        let diasUteis = 0;
+        let domFeriados = 0;
+
+        // 4. Varredura dia a dia do mês 
+        for (let d = 1; d <= diasNoMes; d++) {
+            const dataAtual = new Date(ano, mes - 1, d);
+            const diaSemana = dataAtual.getDay();
+            const dataStr = String(d).padStart(2, '0') + '/' + String(mes).padStart(2, '0');
+
+            const ehDomingo = (diaSemana === 0);
+            const ehFeriadoFixo = feriadosFixos.includes(dataStr);
+            const ehFeriadoMovel = feriadosMoveis.includes(dataStr);
+            const ehFeriadoExtra = extrasArray.includes(dataStr);
+
+            if (ehDomingo || ehFeriadoFixo || ehFeriadoMovel || ehFeriadoExtra) {
+                domFeriados++;
+            } else {
+                diasUteis++;
             }
-        });
-        const extras = document.getElementById('feriadosExtras').value;
-        const qtdExtras = extras ? extras.split(',').length : 0;
-        document.getElementById('diasUteis').value = Math.max(0, diasUteis - qtdExtras - feriadosNacionais);
-        document.getElementById('domFeriados').value = domingos + qtdExtras + feriadosNacionais;
+        }
+
+        document.getElementById('diasUteis').value = diasUteis;
+        document.getElementById('domFeriados').value = domFeriados;
         
         if(document.querySelector('input[name="tipoDias"]:checked')?.value !== 'completo') {
             calcularDiasProporcionaisFerias();
