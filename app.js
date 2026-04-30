@@ -32,8 +32,8 @@ const regras = {
       "nenhum": 0,
       "basico_individual": 29,
       "basico_familiar": 58,
-      "plus_individual": 115,
-      "plus_familiar": 180
+      "plus_individual": 120, // Reajustado
+      "plus_familiar": 189   // Reajustado
     }
 };
 
@@ -72,7 +72,7 @@ function calcularIRRF(baseCalculo, dependentes, regras, rendimentosTributaveis) 
 }
 
 function calcularSalarioCompleto(inputs, regras) {
-    const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, assistencial, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
+    const { salario, diasTrab, dependentes, faltas, atrasos, he50, he60, he80, he100, he150, noturno, plano, coparticipacao, assistencial, sindicato, emprestimo, diasUteis, domFeriados, descontarVT } = inputs;
     
     const diasEfetivos = (!diasTrab || diasTrab === 0) ? 30 : diasTrab;
     const valorDia = salario / 30;
@@ -114,8 +114,8 @@ function calcularSalarioCompleto(inputs, regras) {
     const descontoPlano = regras.planosSESI[plano] || 0;
     const descontoSindicato = sindicato === 'sim' ? regras.valorSindicato : 0;
     
-    // Soma total dos descontos
-    const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + assistencial + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
+    // Soma total dos descontos (Incluindo coparticipação)
+    const totalDescontos = descontoFaltas + descontoAtrasos + descontoPlano + coparticipacao + assistencial + descontoSindicato + emprestimo + inss + irrf + descontoVA + adiantamento + descontoVT;
     const liquido = totalBruto - totalDescontos;
 
     const formatarMoedaRef = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -127,7 +127,7 @@ function calcularSalarioCompleto(inputs, regras) {
             temHE: totalHE > 0, temNoturno: valorNoturno > 0
         },
         descontos: { 
-            descontoFaltas, descontoAtrasos, descontoPlano, assistencial, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos 
+            descontoFaltas, descontoAtrasos, descontoPlano, coparticipacao, assistencial, descontoSindicato, emprestimo, inss, irrf, adiantamento, descontoVA, descontoVT, totalDescontos 
         },
         refs: {
             diasEfetivos: `${diasEfetivos} d`,
@@ -188,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const { proventos, descontos, liquido, fgts, refs } = resultado;
         const liquidoMensal = liquido + descontos.adiantamento;
         
-        // Função atualizada para renderizar as 3 colunas
         const row = (label, ref, val, forcar = false) => {
             if (val > 0.01 || forcar) {
                 return `<tr>
@@ -234,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${row('Vale Transporte', refs.vtRef, descontos.descontoVT)}
                     ${row('Vale Alimentação', 'Fixo', descontos.descontoVA)}
                     ${row('Convênio SESI', '-', descontos.descontoPlano)}
+                    ${row('Coparticipação Convênio', '-', descontos.coparticipacao)}
                     ${row('Contribuição Assistencial', '-', descontos.assistencial)}
                     ${row('Mensalidade Sindical', '-', descontos.descontoSindicato)}
                     ${row('Empréstimo Consignado', '-', descontos.emprestimo)}
@@ -353,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
             salario: getMoney('salario'), 
             emprestimo: getMoney('emprestimo'), 
             assistencial: getMoney('assistencial'),
+            coparticipacao: getMoney('coparticipacao'), // <- Novo campo recolhido aqui
             diasTrab: getNumber('diasTrab'), 
             dependentes: getNumber('dependentes'),
             faltas: getNumber('faltas'),
@@ -393,7 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
         preencherDiasMes();
     }
 
-    // Função de preencher dias do mês com cálculo da Páscoa e Varredura à prova de bugs
     function preencherDiasMes() {
         const mesAno = document.getElementById('mesReferencia').value;
         if (!mesAno) return;
