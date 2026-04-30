@@ -192,15 +192,21 @@
                             </div>
                         </div>
                         
-                        <div class="input-group mb-3">
-                            <label>Plano SESI</label>
-                            <select id="plano" class="form-control form-select">
-                                <option value="nenhum">Não optante</option>
-                                <option value="basico_individual">Básico Individual</option>
-                                <option value="basico_familiar">Básico Familiar</option>
-                                <option value="plus_individual">Plus Individual</option>
-                                <option value="plus_familiar">Plus Familiar</option>
-                            </select>
+                        <div class="form-row mb-3">
+                            <div class="input-group flex-1">
+                                <label>Plano SESI</label>
+                                <select id="plano" class="form-control form-select">
+                                    <option value="nenhum">Não optante</option>
+                                    <option value="basico_individual">Básico Ind. (R$ 29)</option>
+                                    <option value="basico_familiar">Básico Fam. (R$ 58)</option>
+                                    <option value="plus_individual">Plus Ind. (R$ 120)</option>
+                                    <option value="plus_familiar">Plus Fam. (R$ 189)</option>
+                                </select>
+                            </div>
+                            <div class="input-group flex-1">
+                                <label>Coparticipação (R$)</label>
+                                <input type="text" id="coparticipacao" inputmode="decimal" class="form-control money-input" placeholder="0,00" />
+                            </div>
                         </div>
                         
                         <div class="input-group mb-3">
